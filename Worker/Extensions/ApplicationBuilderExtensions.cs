@@ -4,7 +4,6 @@
     {
         public static IApplicationBuilder UseWorker(this IApplicationBuilder app)
         {
-            app.UseRouting();
             return app;
         }
     }

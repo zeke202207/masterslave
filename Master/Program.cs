@@ -15,6 +15,7 @@ namespace NetX.Master
             builder.Services.AddMaster();
             var app = builder.Build();
             app.UseMaster();
+            app.Urls.Add($"http://*".AddRandomPort());
             app.Run();
         }
     }

@@ -24,25 +24,27 @@ namespace NetX.MasterSDK
             _client = new MasterSDKService.MasterServiceSDK.MasterServiceSDKClient(_channel);
         }
 
-        public async Task<ExecuteTaskResponse> ExecuteTaskAsync(ExecuteTaskRequest request)
+        public async Task<byte[]> ExecuteTaskAsync(ExecuteTaskRequest request)
         {
             try
             {
-                return await _client.ExecuteTaskAsync(request);
+                var result  = await _client.ExecuteTaskAsync(request);
+                var jobResult = await GetJobResultAsync(new GetJobResultRequest() { JobId = result.JobId });
+                return jobResult.Result.ToByteArray();
             }
             catch (RpcException ex)
             {
                 Logger?.Invoke(new Exception($"gRPC error: {ex.Status.Detail}",ex));
-                return default(ExecuteTaskResponse);
+                return default(byte[]);
             }
             catch (Exception ex)
             {
                 Logger?.Invoke(new Exception($"Error: {ex.Message}", ex));
-                return default(ExecuteTaskResponse);
+                return default(byte[]);
             }
         }
 
-        public async Task<CancelTaskResponse> CancelTaskAsync(CancelTaskRequest request)
+        private async Task<CancelTaskResponse> CancelTaskAsync(CancelTaskRequest request)
         {
             try
             {
@@ -60,7 +62,7 @@ namespace NetX.MasterSDK
             }
         }
 
-        public async Task<GetJobStatusResponse> GetJobStatusAsync(GetJobStatusRequest request)
+        private async Task<GetJobStatusResponse> GetJobStatusAsync(GetJobStatusRequest request)
         {
             try
             {
@@ -79,7 +81,7 @@ namespace NetX.MasterSDK
             }
         }
 
-        public async Task<GetJobResultResponse> GetJobResultAsync(GetJobResultRequest request)
+        private async Task<GetJobResultResponse> GetJobResultAsync(GetJobResultRequest request)
         {
             try
             {

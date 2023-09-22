@@ -16,18 +16,21 @@ namespace Demo
         private static async Task Test()
         {
             var factory = new MasterServiceSDKFactory("http://localhost:5600");
-            using (var client = factory.CreateClient())
+            while (true)
             {
-                byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
-                ByteString byteString = ByteString.CopyFrom(byteArray);
+                using (var client = factory.CreateClient())
+                {
+                    byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
+                    var input = Guid.NewGuid().ToString();
+                    ByteString byteString = ByteString.CopyFrom(Encoding.Default.GetBytes(input));
 
-                var result = await client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString });
-
-                var r = await client.GetJobResultAsync(new MasterSDKService.GetJobResultRequest() { JobId = result.JobId });
-
-                Console.WriteLine(Encoding.Default.GetString(r.Result.ToByteArray()));
-                Console.ReadLine();
+                    var result = await client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString });
+                    var output = Encoding.Default.GetString(result);
+                    Console.WriteLine($"结果 {output}：{input == output}");
+                }
+                Thread.Sleep(500);
             }
+
         }
 
         private static async Task Test1()
@@ -38,16 +41,11 @@ namespace Demo
                 using (var client = factory.CreateClient())
                 {
                     byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
-                    ByteString byteString = ByteString.CopyFrom(byteArray);
-
-                    var id = await client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString });
-
-
-                    byte[] byteArray1 = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05 };
-                    ByteString byteString1 = ByteString.CopyFrom(byteArray1);
-                    var id1 = await client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString1 });
-
-                    Console.WriteLine(id);
+                    var input = Guid.NewGuid().ToString();
+                    ByteString byteString = ByteString.CopyFrom(Encoding.Default.GetBytes(input));
+                    var result = await client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString });
+                    var output = Encoding.Default.GetString(result);
+                    Console.WriteLine($"结果 {output}：{input == output}");
                 }
             });
         }

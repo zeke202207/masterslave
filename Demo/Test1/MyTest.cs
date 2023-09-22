@@ -8,8 +8,8 @@ namespace Test1
     {
         public Task<JobItemResult> RunJobAsync(JobItem job)
         {
-            Console.WriteLine("hi,zeke");
-            return Task.FromResult(new JobItemResult() { JobId = job.JobId, Result = Encoding.Default.GetBytes("zeke") });
+            Console.WriteLine($"{Encoding.Default.GetString(job.Data)}");
+            return Task.FromResult(new JobItemResult() { JobId = job.JobId, Result = job.Data });
         }
     }
 }

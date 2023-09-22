@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using NetX.Common;
 using NetX.MemoryQueue;
 
 namespace NetX.Worker
@@ -12,6 +13,7 @@ namespace NetX.Worker
             builder.Services.AddWorker(builder.Configuration);
             var app = builder.Build();
             app.UseWorker();
+            app.Urls.Add($"http://*".AddRandomPort());
             app.Run();
         }
     }
