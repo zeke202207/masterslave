@@ -1,4 +1,6 @@
-﻿using Grpc.Core;
+﻿using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using Grpc.Net.Client;
 using MasterWorkerService;
 using Microsoft.Extensions.Options;
@@ -71,7 +73,7 @@ namespace NetX.Worker
                         if (response.IsSuccess)
                         {
                             await Task.Factory.StartNew(async () => await ListenForJobsAsync(_node.Id), TaskCreationOptions.LongRunning);
-                            await Task.Factory.StartNew(async () => await ListenJobsResultsAsync(), TaskCreationOptions.LongRunning);
+                            Task.Factory.StartNew(async () => await ListenJobsResultsAsync(), TaskCreationOptions.LongRunning);
                         }
                         else
                         {
@@ -159,20 +161,25 @@ namespace NetX.Worker
         /// </summary>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        private Task ListenJobsResultsAsync()
+        private async Task ListenJobsResultsAsync()
         {
             try
             {
+                var call = _client.ListenForResult();
                 foreach (var item in _blockingCollection.GetConsumingEnumerable())
                 {
-                    Console.WriteLine($"Consumer 1: {item}");
+                    await call.RequestStream.WriteAsync(new ListenForResultRequest()
+                    {
+                        Id = item.JobId,
+                        Result = ByteString.CopyFrom(item.Result)
+                    });
                 }
+                await call.RequestStream.CompleteAsync();
             }
             catch (Exception ex)
             {
                 _logger.LogError("监听结果失败", ex);
             }
-            return Task.CompletedTask;
         }
 
         /// <summary>

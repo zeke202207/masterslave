@@ -15,17 +15,21 @@ namespace NetX.Master
         private readonly IJobPublisher _jobPublisher;
         private readonly ISecurityPolicy _securityPolicy;
         private readonly ILogger _logger;
+        private readonly DataTransferCenter _dataTransferCenter;
+
 
         public MasterService(
             INodeManagement nodeManagement, 
             IJobPublisher jobPublisher, 
-            ISecurityPolicy securityPolicy, 
+            ISecurityPolicy securityPolicy,
+            DataTransferCenter dataTransferCenter,
             ILogger<MasterService> logger)
         {
             _nodeManagement = nodeManagement;
             _jobPublisher = jobPublisher;
             _securityPolicy = securityPolicy;
             _logger = logger;
+            _dataTransferCenter = dataTransferCenter;
         }
 
         /// <summary>
@@ -115,6 +119,32 @@ namespace NetX.Master
             {
                 _logger.LogError("节点监听任务失败", ex);
             }
+        }
+
+        /// <summary>
+        /// 结果集监听任务，用户获取slave节点的所有结果
+        /// </summary>
+        /// <param name="requestStream"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public async override Task<ListenForResultReponse> ListenForResult(IAsyncStreamReader<ListenForResultRequest> requestStream, ServerCallContext context)
+        {
+            try
+            {
+                await foreach (var resp in requestStream.ReadAllAsync())
+                {
+                    _dataTransferCenter.ProcessData(new ResultModel()
+                    {
+                        JobId = resp.Id,
+                        Result = resp.Result.ToByteArray(),
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("结果监听任务失败", ex);
+            }
+            return new ListenForResultReponse();
         }
 
         /// <summary>

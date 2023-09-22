@@ -83,6 +83,14 @@ message WorkerInfoResponse {
   string errorMessage = 2;
 }
 
+message ListenForResultRequest {
+	string id =1;
+	bytes result = 2;
+}
+
+message ListenForResultReponse{
+
+}
 
 // The NodeService provides methods for managing nodes and executing jobs
 service MasterNodeService {
@@ -92,6 +100,7 @@ service MasterNodeService {
   rpc UnregisterNode (UnregisterNodeRequest) returns (UnregisterNodeResponse);
   // ListenForJob listens for a job from the server
   rpc ListenForJob (ListenForJobRequest) returns (stream ListenForJobResponse);
+  rpc ListenForResult(stream ListenForResultRequest) returns (ListenForResultReponse);
   rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
   rpc WorkerInfo(WorkerInfoRequest) returns (WorkerInfoResponse);
 }

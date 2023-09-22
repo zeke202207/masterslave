@@ -64,7 +64,8 @@ namespace NetX.MasterSDK
         {
             try
             {
-                return await _client.GetJobStatusAsync(request);
+                //return await _client.GetJobStatusAsync(request);
+                return null;
             }
             catch (RpcException ex)
             {
@@ -82,7 +83,13 @@ namespace NetX.MasterSDK
         {
             try
             {
-                return await _client.GetJobResultAsync(request);
+                await foreach(var s in _client.GetJobResult(request).ResponseStream.ReadAllAsync())
+                {
+                    return new GetJobResultResponse() { Result = s.Result };
+                }
+                return null;
+
+                //return await _client.GetJobResultAsync(request);
             }
             catch (RpcException ex)
             {

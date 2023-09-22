@@ -24,8 +24,15 @@ namespace NetX.Worker
         /// <returns></returns>
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            if (await _masterClient.RegisterNodeAsync(new WorkerItem() { Id = _config.Id, IsBusy = false, LastActiveTime = DateTime.UtcNow }))
-                await _masterClient.Start();
+            try
+            {
+                if (await _masterClient.RegisterNodeAsync(new WorkerItem() { Id = _config.Id, IsBusy = false, LastActiveTime = DateTime.UtcNow }))
+                    await _masterClient.Start();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         /// <summary>

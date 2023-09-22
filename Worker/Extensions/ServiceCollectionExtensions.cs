@@ -10,7 +10,7 @@ namespace NetX.Worker
         public static IServiceCollection AddWorker(this IServiceCollection services, ConfigurationManager config)
         {
             services.Configure<WorkerConfig>(config.GetSection("WorkerConfig"));
-            services.AddTransient<IMasterClient, MasterClient>();
+            services.AddSingleton<IMasterClient, MasterClient>();
             services.AddHostedService<WorkerHostedService>();
             services.AddPlugin();
             return services;

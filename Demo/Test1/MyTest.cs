@@ -1,4 +1,5 @@
 ﻿using NetX.WorkerPlugin.Contract;
+using System.Text;
 
 namespace Test1
 {
@@ -8,7 +9,7 @@ namespace Test1
         public Task<JobItemResult> RunJobAsync(JobItem job)
         {
             Console.WriteLine("hi,zeke");
-            return Task.FromResult(new JobItemResult() { JobId = job.JobId, Result = new byte[] { 0x01, 0x02 } });
+            return Task.FromResult(new JobItemResult() { JobId = job.JobId, Result = Encoding.Default.GetBytes("zeke") });
         }
     }
 }

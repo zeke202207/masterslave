@@ -6,6 +6,7 @@ namespace NetX.Master
     {
         public static IServiceCollection AddMaster(this IServiceCollection services)
         {
+            services.AddSingleton<DataTransferCenter>();
             services.AddSingleton<INodeManagement, NodeManagement>();
             services.AddSingleton<ILoadBalancing, LruLoadBalancing>();
             services.AddSingleton<IJobPublisher, JobPublisher>();

@@ -9,11 +9,13 @@ namespace NetX.Master
     {
         private readonly IPublisher _publisher;
         private readonly ILogger _logger;
+        private readonly DataTransferCenter _dataTransferCenter;
 
-        public MasterServiceSDK(IPublisher publisher, ILogger<MasterServiceSDK> logger) 
+        public MasterServiceSDK(IPublisher publisher, ILogger<MasterServiceSDK> logger, DataTransferCenter dataTransferCenter) 
         {
             _publisher = publisher;
             _logger = logger;
+            _dataTransferCenter = dataTransferCenter;
         }
 
         public override async Task<ExecuteTaskResponse> ExecuteTask(ExecuteTaskRequest request, ServerCallContext context)
@@ -38,14 +40,32 @@ namespace NetX.Master
             return base.CancelTask(request, context);
         }
 
-        public override Task<GetJobResultResponse> GetJobResult(GetJobResultRequest request, ServerCallContext context)
+        public override async Task GetJobResult(GetJobResultRequest request, IServerStreamWriter<GetJobResultResponse> responseStream, ServerCallContext context)
         {
-            return base.GetJobResult(request, context);
+            var consumer = new DataTransferResultConsumer()
+            {
+                JobId = request.JobId,
+                TokenSource = new CancellationTokenSource(),
+                StreamWriter = responseStream,
+            };
+            try
+            {
+                _dataTransferCenter.Regist(consumer);
+                await Task.Delay(Timeout.Infinite, consumer.TokenSource.Token);
+            }
+            catch (Exception ex)
+            {
+                //TODO:
+            }
+            finally
+            {
+                _dataTransferCenter.UnRegist(consumer);
+            }
         }
 
-        public override Task<GetJobStatusResponse> GetJobStatus(GetJobStatusRequest request, ServerCallContext context)
+        public override Task GetJobStatus(GetJobStatusRequest request, IServerStreamWriter<GetJobStatusResponse> responseStream, ServerCallContext context)
         {
-            return base.GetJobStatus(request, context);
+            return base.GetJobStatus(request, responseStream, context);
         }
     }
 }

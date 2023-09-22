@@ -5,8 +5,8 @@ package MasterSDKService;
 service MasterServiceSDK {
   rpc ExecuteTask (ExecuteTaskRequest) returns (ExecuteTaskResponse) {}
   rpc CancelTask (CancelTaskRequest) returns (CancelTaskResponse) {}
-  rpc GetJobStatus (GetJobStatusRequest) returns (GetJobStatusResponse) {}
-  rpc GetJobResult (GetJobResultRequest) returns (GetJobResultResponse) {}
+  rpc GetJobStatus (GetJobStatusRequest) returns (stream GetJobStatusResponse) {}
+  rpc GetJobResult (GetJobResultRequest) returns (stream GetJobResultResponse) {}
 }
 
 message ExecuteTaskRequest {

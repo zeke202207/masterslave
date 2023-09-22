@@ -1,5 +1,6 @@
 ﻿using Google.Protobuf;
 using NetX.MasterSDK;
+using System.Text;
 
 namespace Demo
 {
@@ -20,11 +21,12 @@ namespace Demo
                 byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
                 ByteString byteString = ByteString.CopyFrom(byteArray);
 
-                var id = await client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString });
+                var result = await client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString });
 
+                var r = await client.GetJobResultAsync(new MasterSDKService.GetJobResultRequest() { JobId = result.JobId });
 
-
-                Console.WriteLine(id);
+                Console.WriteLine(Encoding.Default.GetString(r.Result.ToByteArray()));
+                Console.ReadLine();
             }
         }
 
