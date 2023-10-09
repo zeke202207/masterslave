@@ -9,11 +9,13 @@ public class WorkerHostedService : IHostedService
 {
     private readonly IMasterClient _masterClient;
     private readonly WorkerConfig _config;
+    private readonly ILogger _logger;
 
-    public WorkerHostedService(IMasterClient masterClient, IOptions<WorkerConfig> config)
+    public WorkerHostedService(IMasterClient masterClient, IOptions<WorkerConfig> config, ILogger<WorkerHostedService> logger)
     {
         _masterClient = masterClient;
         _config = config.Value;
+        _logger = logger;
     }
 
     /// <summary>
@@ -30,7 +32,7 @@ public class WorkerHostedService : IHostedService
         }
         catch (Exception ex)
         {
-            throw;
+            _logger.LogError("注册节点失败", ex);
         }
     }
 

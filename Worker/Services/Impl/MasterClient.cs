@@ -66,7 +66,7 @@ public class MasterClient : IMasterClient, IDisposable
                     if (response.IsSuccess)
                     {
                         await Task.Factory.StartNew(async () => await ListenForJobsAsync(_node.Id), TaskCreationOptions.LongRunning);
-                        Task.Factory.StartNew(async () => await ListenJobsResultsAsync(), TaskCreationOptions.LongRunning);
+                        var _ = Task.Factory.StartNew(async () => await ListenJobsResultsAsync(), TaskCreationOptions.LongRunning);
                     }
                     else
                     {
@@ -185,16 +185,18 @@ public class MasterClient : IMasterClient, IDisposable
         {
             try
             {
-                await _client.HeartbeatAsync(new HeartbeatRequest() { Id = _config.Id, CurrentTime = DateTime.UtcNow.DateTimeToUnixTimestamp() }, cancellationToken: _cancellationTokenSource.Token);
-            }
-            catch (RpcException ex)
-            {
-                _logger.LogError(ex, "Heartbeat failed");
-                if (ex.StatusCode == StatusCode.Unavailable)
+                var result = await _client.HeartbeatAsync(new HeartbeatRequest() { Id = _config.Id, CurrentTime = DateTime.UtcNow.DateTimeToUnixTimestamp() }, cancellationToken: _cancellationTokenSource.Token);
+                if(!result.IsSuccess)
                 {
                     InitializeClient();
                     await RegisterNodeAsync(_node);
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Heartbeat failed");
+                InitializeClient();
+                await RegisterNodeAsync(_node);
             }
             await Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
         }

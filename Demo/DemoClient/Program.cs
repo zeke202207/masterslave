@@ -10,7 +10,7 @@ namespace Demo
     {
         static async Task Main(string[] args)
         {
-            await Test1();
+            await Test0();
             Console.ReadLine();
             Console.WriteLine("Hello, World!");
         }
@@ -51,7 +51,7 @@ namespace Demo
                         ByteString byteString = ByteString.CopyFrom(Encoding.Default.GetBytes(input));
                         Record(() => client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString }).GetAwaiter().GetResult(), input);
 
-                        Console.ReadLine();
+                        //Console.ReadLine();
                     }
                 }
             }
