@@ -1,10 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace NetX.Master;
 
-namespace NetX.Master
-{
-    public record class JobItem(string jobId , byte[] jobData);
-}
+public record class JobItem(string jobId, byte[] jobData);

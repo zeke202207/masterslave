@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+﻿namespace NetX.Master;
 
-namespace NetX.Master
+public interface ILoadBalancing
 {
-    public interface ILoadBalancing
-    {
-        WorkerNode GetNode(IEnumerable<WorkerNode> nodes);
-    }
+    WorkerNode GetNode(IEnumerable<WorkerNode> nodes);
 }

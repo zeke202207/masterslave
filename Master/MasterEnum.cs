@@ -1,16 +1,16 @@
-﻿namespace NetX.Master
-{
-    public enum JobStatus
-    {
-        Pending,
-        Running,
-        Completed,
-        Failed
-    }
+﻿namespace NetX.Master;
 
-    public enum WorkNodeStatus
-    {
-        Idle,
-        Busy
-    }
+public enum JobStatus
+{
+    Pending,
+    Running,
+    Completed,
+    Failed
+}
+
+public enum WorkNodeStatus
+{
+    Idle,
+    Busy,
+    Offline
 }

@@ -1,10 +1,9 @@
-﻿namespace NetX.Worker
+﻿namespace NetX.Worker;
+
+public static class ApplicationBuilderExtensions
 {
-    public static class ApplicationBuilderExtensions
+    public static IApplicationBuilder UseWorker(this IApplicationBuilder app)
     {
-        public static IApplicationBuilder UseWorker(this IApplicationBuilder app)
-        {
-            return app;
-        }
+        return app;
     }
 }

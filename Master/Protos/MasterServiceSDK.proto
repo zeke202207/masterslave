@@ -3,10 +3,7 @@
 package MasterSDKService;
 
 service MasterServiceSDK {
-  rpc ExecuteTask (ExecuteTaskRequest) returns (ExecuteTaskResponse) {}
-  rpc CancelTask (CancelTaskRequest) returns (CancelTaskResponse) {}
-  rpc GetJobStatus (GetJobStatusRequest) returns (stream GetJobStatusResponse) {}
-  rpc GetJobResult (GetJobResultRequest) returns (stream GetJobResultResponse) {}
+  rpc ExecuteTask (ExecuteTaskRequest) returns (stream ExecuteTaskResponse) {}
 }
 
 message ExecuteTaskRequest {
@@ -16,28 +13,5 @@ message ExecuteTaskRequest {
 message ExecuteTaskResponse {
   string jobId = 1;
   string errorMessage = 2 ;
-}
-
-message CancelTaskRequest {
-  string jobId = 1;
-}
-
-message CancelTaskResponse {
-  bool success = 1;
-}
-
-message GetJobStatusRequest {
-  string jobId = 1;
-}
-
-message GetJobStatusResponse {
-  
-}
-
-message GetJobResultRequest {
-  string jobId = 1;
-}
-
-message GetJobResultResponse {
-  bytes result = 1;
+  bytes result =3;
 }

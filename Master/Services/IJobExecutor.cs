@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace NetX.Master;
 
-namespace NetX.Master
+public interface IJobExecutor
 {
-    public interface IJobExecutor
-    {
-        Task ExecuteJobAsync(string workerNodeId, JobItem job);
-    }
+    Task ExecuteJobAsync(string workerNodeId, JobItem job);
 }

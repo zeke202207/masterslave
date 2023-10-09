@@ -1,10 +1,9 @@
 ﻿
-namespace NetX.Master
+namespace NetX.Master;
+
+public interface IJobPublisher
 {
-    public interface IJobPublisher
-    {
-        void Subscribe(IObserver<WorkerJob> observer);
-        void Unsubscribe(IObserver<WorkerJob> observer);
-        void Publish(WorkerJob job);
-    }
+    void Subscribe(IObserver<WorkerJob> observer);
+    void Unsubscribe(IObserver<WorkerJob> observer);
+    void Publish(WorkerJob job);
 }

@@ -3,66 +3,67 @@ using Grpc.Core;
 using MasterSDKService;
 using System.Collections.Concurrent;
 
-namespace NetX.Master
+namespace NetX.Master;
+
+public class DataTransferCenter
 {
-    public class DataTransferCenter
-    {
-        private BlockingCollection<ResultModel> _results = new BlockingCollection<ResultModel>();
-        private ConcurrentBag<DataTransferResultConsumer> _consumers = new ConcurrentBag<DataTransferResultConsumer>();
+    private BlockingCollection<ResultModel> _results = new BlockingCollection<ResultModel>();
+    private ConcurrentDictionary<string, DataTransferResultConsumer> _consumers = new();
+    private readonly ILogger _logger;
+    private int i = 0;
 
-        public DataTransferCenter()
+    public DataTransferCenter(ILogger<DataTransferCenter> logger)
+    {
+        _logger = logger;
+        Task.Factory.StartNew(async () =>
         {
-            Task.Factory.StartNew(() =>
+            foreach (var result in _results.GetConsumingEnumerable())
             {
-
-                foreach (var result in _results.GetConsumingEnumerable())
+                try
                 {
-                    try
-                    {
-                        var consumer = _consumers.FirstOrDefault(p=>p.JobId == result.JobId);
-                        if (null == consumer)
-                            continue;
-                        consumer.StreamWriter.WriteAsync(new GetJobResultResponse() { Result = ByteString.CopyFrom(result.Result) });
-                        consumer.TokenSource.Cancel();
-                    }
-                    catch (Exception ex)
-                    {
-
-                    }
+                    if (!_consumers.ContainsKey(result.JobId))
+                        continue;
+                    var consumer = _consumers[result.JobId];
+                    await consumer.StreamWriter.WriteAsync(new ExecuteTaskResponse() { Result = ByteString.CopyFrom(result.Result) });
+                    consumer.TokenSource.Cancel();
                 }
-            });
-        }
+                catch (Exception ex)
+                {
 
-
-        public void Regist(DataTransferResultConsumer consumer)
-        {
-            _consumers.Add(consumer);
-        }
-
-        public void UnRegist(DataTransferResultConsumer consumer)
-        {
-            _consumers.TryTake(out _);
-        }
-
-        public void ProcessData(ResultModel result)
-        {
-            _results.TryAdd(result);
-        }
+                }
+            }
+        });
     }
 
-    public class ResultModel
+
+    public void Regist(DataTransferResultConsumer consumer)
     {
-        public string JobId { get; set; }
-
-        public byte[] Result { get;set; }
+        _consumers.AddOrUpdate(consumer.JobId, consumer, (oldKey, oldValue) => consumer);
     }
 
-    public class DataTransferResultConsumer
+    public void UnRegist(DataTransferResultConsumer consumer)
     {
-        public string JobId { get; set; }
-
-        public CancellationTokenSource TokenSource { get; set; }
-
-        public IServerStreamWriter<GetJobResultResponse> StreamWriter { get; set; }
+        _consumers.Remove(consumer.JobId, out _);
     }
+
+    public void ProcessData(ResultModel result)
+    {
+        _results.TryAdd(result);
+    }
+}
+
+public class ResultModel
+{
+    public string JobId { get; set; }
+
+    public byte[] Result { get; set; }
+}
+
+public class DataTransferResultConsumer
+{
+    public string JobId { get; set; }
+
+    public CancellationTokenSource TokenSource { get; set; }
+
+    public IServerStreamWriter<ExecuteTaskResponse> StreamWriter { get; set; }
 }

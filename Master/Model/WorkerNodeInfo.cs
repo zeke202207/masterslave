@@ -1,9 +1,8 @@
-﻿namespace NetX.Master
-{
-    public class WorkerNodeInfo
-    {
-        public string Cpu { get; set; }
+﻿namespace NetX.Master;
 
-        public string Memory { get; set; }
-    }
+public class WorkerNodeInfo
+{
+    public string Cpu { get; set; }
+
+    public string Memory { get; set; }
 }

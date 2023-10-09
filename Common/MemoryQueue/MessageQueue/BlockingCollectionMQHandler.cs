@@ -1,84 +1,83 @@
 ﻿using System.Collections.Concurrent;
 
-namespace NetX.MemoryQueue
+namespace NetX.MemoryQueue;
+
+internal class BlockingCollectionMQHandler<TMessage> : MessageQueueHandler
+    where TMessage : MessageArgument
 {
-    internal class BlockingCollectionMQHandler<TMessage> : MessageQueueHandler
-        where TMessage : MessageArgument
+    private BlockingCollection<TMessage> _queue;
+    private PriorityQueue<TMessage, int> _priorityQueue;
+    public Action<MessageArgument> _received;
+
+    public BlockingCollectionMQHandler()
     {
-        private BlockingCollection<TMessage> _queue;
-        private PriorityQueue<TMessage,int> _priorityQueue;
-        public Action<MessageArgument> _received;
+        _queue = new BlockingCollection<TMessage>();
+        _priorityQueue = new PriorityQueue<TMessage, int>();
+    }
 
-        public BlockingCollectionMQHandler()
-        {
-            _queue = new BlockingCollection<TMessage>();
-            _priorityQueue = new PriorityQueue<TMessage, int>();
-        }
+    public override bool IsBindReceivedEvent
+    {
+        get => this._received != null;
+    }
 
-        public override bool IsBindReceivedEvent
+    public override void BindReceivedEvent(Action<MessageArgument> received)
+    {
+        this._received = received;
+        if (null != _received)
         {
-            get => this._received != null;
-        }
-
-        public override void BindReceivedEvent(Action<MessageArgument> received)
-        {
-            this._received = received;
-            if (null != _received)
+            Task.Factory.StartNew(() =>
             {
-                Task.Factory.StartNew(() =>
+                foreach (var message in _queue.GetConsumingEnumerable())
                 {
-                    foreach (var message in _queue.GetConsumingEnumerable())
+                    if (!_queue.IsAddingCompleted)
                     {
-                        if (!_queue.IsAddingCompleted)
+                        try
                         {
-                            try
+                            if (null != message && null != received)
                             {
-                                if (null != message && null != received)
-                                {
-                                    _priorityQueue.Enqueue(message, message.Priority);
-                                    //_received.Invoke(message);
-                                }
-                            }
-                            catch (Exception _)
-                            {
-                                //Console.WriteLine(ex);
+                                //_priorityQueue.Enqueue(message, message.Priority);
+                                _received.Invoke(message);
                             }
                         }
-                        else
+                        catch (Exception _)
                         {
-                            if (null != received)
-                                received = null;
+                            //Console.WriteLine(ex);
                         }
                     }
-                });
-
-                Task.Factory.StartNew(() =>
-                {
-                    while(true)
+                    else
                     {
-                        if (null == received ||
-                        _priorityQueue.Count == 0 ||
-                        !_priorityQueue.TryDequeue(out TMessage message, out int priority) ||
-                        null == message)
-                        {
-                            Thread.Sleep(1 * 1000);
-                            continue;
-                        }
-                        received.Invoke(message);
+                        if (null != received)
+                            received = null;
                     }
-                });
-            }
-        }
+                }
+            });
 
-        public override async Task<bool> Publish(MessageArgument message)
-        {
-            return await Task.Run<bool>(() =>
+            Task.Factory.StartNew(() =>
             {
-                if (_queue.IsCompleted)
-                    return true;
-                _queue.Add((TMessage)message);
-                return true;
+                while (true)
+                {
+                    if (null == received ||
+                    _priorityQueue.Count == 0 ||
+                    !_priorityQueue.TryDequeue(out TMessage message, out int priority) ||
+                    null == message)
+                    {
+                        Thread.Sleep(1 * 10);
+                        continue;
+                    }
+                    received.Invoke(message);
+                }
             });
         }
+    }
+
+    public override async Task<bool> Publish(MessageArgument message)
+    {
+        return await Task.Run<bool>(() =>
+        {
+            if (_queue.IsCompleted)
+                return true;
+            _queue.Add((TMessage)message);
+            return true;
+        });
     }
 }

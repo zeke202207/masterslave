@@ -1,22 +1,28 @@
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Extensions.Options;
 using NetX.Common;
-using NetX.MemoryQueue;
 
-namespace NetX.Master
+namespace NetX.Master;
+
+public class Program
 {
-    public class Program
+    public static async Task Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
-            builder.Host.UseLogging();
-            builder.WebHost.AddGrpcHost(Convert.ToInt32(builder.Configuration["Master:Port"]));
-            builder.Services.AddMaster();
-            var app = builder.Build();
-            app.UseMaster();
-            app.Urls.Add($"http://*".AddRandomPort());
-            app.Run();
-        }
+        var hostBuilder = Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                    {
+                        config.AddJsonFile("logging.json");
+                        config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                    })
+                .ConfigureWebHostDefaults(webHostBuilder =>
+                {
+                    webHostBuilder.ConfigureKestrel(options =>
+                    {
+                        options.ListenAnyIP(5600, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
+                    });
+                    webHostBuilder.UseUrls($"http://*".AddRandomPort());
+                    webHostBuilder.UseStartup<Startup>();
+                });
+        hostBuilder.UseLogging();
+        var host = hostBuilder.Build();
+        await host.RunAsync();
     }
 }

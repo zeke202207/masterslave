@@ -1,59 +1,52 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace NetX.Master;
 
-namespace NetX.Master
+/// <summary>
+/// 任务执行器
+/// 将任务发配给指定工作节点
+/// </summary>
+public class JobExecutor : IJobExecutor
 {
-    /// <summary>
-    /// 任务执行器
-    /// 将任务发配给指定工作节点
-    /// </summary>
-    public class JobExecutor : IJobExecutor
+    private readonly IJobPublisher _publisher;
+    private readonly INodeManagement _nodeManager;
+    private readonly ILogger _logger;
+
+    public JobExecutor(IJobPublisher jobPublisher, INodeManagement nodeManagement, ILogger<JobExecutor> logger)
     {
-        private readonly IJobPublisher _publisher;
-        private readonly INodeManagement _nodeManager;
-        private readonly ILogger _logger;
+        _publisher = jobPublisher;
+        _logger = logger;
+        _nodeManager = nodeManagement;
+    }
 
-        public JobExecutor(IJobPublisher jobPublisher, INodeManagement nodeManagement, ILogger<JobExecutor> logger)
+    /// <summary>
+    /// 将任务发送给工作节点执行
+    /// </summary>
+    /// <param name="workerNodeId">工作节点唯一标识</param>
+    /// <param name="job">任务详细信息</param>
+    /// <returns></returns>
+    public async Task ExecuteJobAsync(string workerNodeId, JobItem job)
+    {
+        try
         {
-            _publisher = jobPublisher;
-            _logger = logger;
-            _nodeManager = nodeManagement;
-        }
-
-        /// <summary>
-        /// 将任务发送给工作节点执行
-        /// </summary>
-        /// <param name="workerNodeId">工作节点唯一标识</param>
-        /// <param name="job">任务详细信息</param>
-        /// <returns></returns>
-        public async Task ExecuteJobAsync(string workerNodeId, JobItem job)
-        {
+            var node = _nodeManager.GetNode(workerNodeId);
+            if (null == node)
+                throw new NodeNotFoundException();
+            node.Status = WorkNodeStatus.Busy;
+            _nodeManager.UpdateNode(workerNodeId, () => node);
             try
             {
-                var node = _nodeManager.GetNode(workerNodeId);
-                if (null == node)
-                    throw new NodeNotFoundException();
-                node.Status = WorkNodeStatus.Busy;
-                _nodeManager.UpdateNode(workerNodeId, () => node);
-                try
-                {
-                    _publisher.Publish(new WorkerJob() { WorkerId = node.Id, JobItem = job });
-                }
-                finally
-                {
-                    node.LastUsed = DateTime.Now;
-                    node.Status = WorkNodeStatus.Idle;
-                    _nodeManager.UpdateNode(workerNodeId, () => node);
-                }
+                _publisher.Publish(new WorkerJob() { WorkerId = node.Id, JobItem = job });
             }
-            catch (Exception ex)
+            finally
             {
-                _logger.LogError("执行任务失败", ex);
+                node.LastUsed = DateTime.Now;
+                node.Status = WorkNodeStatus.Idle;
+                _nodeManager.UpdateNode(workerNodeId, () => node);
             }
-            await Task.CompletedTask;
         }
+        catch (Exception ex)
+        {
+            _logger.LogError("执行任务失败", ex);
+        }
+        await Task.CompletedTask;
     }
 }

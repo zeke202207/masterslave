@@ -1,7 +1,6 @@
-﻿namespace NetX.Master
+﻿namespace NetX.Master;
+
+public static class MasterConst
 {
-    public static class MasterConst
-    {
-        public const string C_QUEUENAME_JOBITEM = "jobitemconsumer";
-    }
+    public const string C_QUEUENAME_JOBITEM = "jobitemconsumer";
 }

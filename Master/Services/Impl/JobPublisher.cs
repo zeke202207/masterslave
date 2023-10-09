@@ -1,63 +1,62 @@
 ﻿using System.Collections.Concurrent;
 
-namespace NetX.Master
+namespace NetX.Master;
+
+/// <summary>
+/// 观察者发布类
+/// </summary>
+public class JobPublisher : IJobPublisher
 {
+    private readonly ConcurrentBag<IObserver<WorkerJob>> _observers = new ConcurrentBag<IObserver<WorkerJob>>();
+    private ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
+
     /// <summary>
-    /// 观察者发布类
+    /// 注册到观察者集合
     /// </summary>
-    public class JobPublisher : IJobPublisher
+    /// <param name="observer"></param>
+    public void Subscribe(IObserver<WorkerJob> observer)
     {
-        private readonly ConcurrentBag<IObserver<WorkerJob>> _observers = new ConcurrentBag<IObserver<WorkerJob>>();
-        private ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
-
-        /// <summary>
-        /// 注册到观察者集合
-        /// </summary>
-        /// <param name="observer"></param>
-        public void Subscribe(IObserver<WorkerJob> observer)
+        _readerWriterLock.EnterWriteLock();
+        try
         {
-            _readerWriterLock.EnterWriteLock();
-            try
-            {
-                if (!_observers.Contains(observer))
-                    _observers.Add(observer);
-            }
-            finally
-            {
-                _readerWriterLock.ExitWriteLock();
-            }
+            if (!_observers.Contains(observer))
+                _observers.Add(observer);
         }
-
-        /// <summary>
-        /// 观察者集合取消注册
-        /// </summary>
-        /// <param name="observer"></param>
-        public void Unsubscribe(IObserver<WorkerJob> observer)
+        finally
         {
-            _readerWriterLock.EnterReadLock();
-            try
-            {
-                _observers.TryTake(out observer);
-            }
-            finally
-            {
-                _readerWriterLock.ExitReadLock();
-            }
+            _readerWriterLock.ExitWriteLock();
         }
+    }
 
-        /// <summary>
-        /// 发布消息
-        /// </summary>
-        /// <param name="job"></param>
-        public void Publish(WorkerJob job)
+    /// <summary>
+    /// 观察者集合取消注册
+    /// </summary>
+    /// <param name="observer"></param>
+    public void Unsubscribe(IObserver<WorkerJob> observer)
+    {
+        _readerWriterLock.EnterReadLock();
+        try
         {
-            foreach (var observer in _observers)
-            {
-                JobObserver jobObserver = observer as JobObserver;
-                if (null == jobObserver || !jobObserver.WorkerId.Equals(job.WorkerId))
-                    continue;
-                observer.OnNext(job);
-            }
+            _observers.TryTake(out observer);
+        }
+        finally
+        {
+            _readerWriterLock.ExitReadLock();
+        }
+    }
+
+    /// <summary>
+    /// 发布消息
+    /// </summary>
+    /// <param name="job"></param>
+    public void Publish(WorkerJob job)
+    {
+        foreach (var observer in _observers)
+        {
+            JobObserver jobObserver = observer as JobObserver;
+            if (null == jobObserver || !jobObserver.WorkerId.Equals(job.WorkerId))
+                continue;
+            observer.OnNext(job);
         }
     }
 }

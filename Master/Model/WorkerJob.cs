@@ -1,9 +1,8 @@
-﻿namespace NetX.Master
-{
-    public class WorkerJob
-    {
-        public string WorkerId { get; set; }
+﻿namespace NetX.Master;
 
-        public JobItem JobItem { get; set; }
-    }
+public class WorkerJob
+{
+    public string WorkerId { get; set; }
+
+    public JobItem JobItem { get; set; }
 }

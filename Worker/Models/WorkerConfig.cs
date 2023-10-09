@@ -1,9 +1,8 @@
-﻿namespace NetX.Worker
-{
-    public class WorkerConfig
-    {
-        public string Id { get; set; }
+﻿namespace NetX.Worker;
 
-        public string GrpcServer { get; set; }
-    }
+public class WorkerConfig
+{
+    public string Id { get; set; }
+
+    public string GrpcServer { get; set; }
 }

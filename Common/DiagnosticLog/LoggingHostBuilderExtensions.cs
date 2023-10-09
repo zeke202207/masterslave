@@ -1,23 +1,20 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Serilog;
+﻿using Serilog;
 
-namespace NetX.Common
+namespace NetX.Common;
+
+public static class LoggingHostBuilderExtensions
 {
-    public static class LoggingHostBuilderExtensions
+    public static IHostBuilder UseLogging(this IHostBuilder builder)
     {
-        public static IHostBuilder UseLogging(this IHostBuilder builder)
+        builder.UseSerilog((hostingContext, loggerConfiguration) =>
         {
-            builder.UseSerilog((hostingContext, loggerConfiguration) =>
-            {
-                var buildConfig = new ConfigurationBuilder()
-                                .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logging.json"))
-                                .Build();
-                loggerConfiguration.ReadFrom.Configuration(buildConfig);
-                loggerConfiguration.Enrich.FromLogContext()
-                .WriteTo.Console();
-            });
-            return builder;
-        }
+            var buildConfig = new ConfigurationBuilder()
+                            .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logging.json"))
+                            .Build();
+            loggerConfiguration.ReadFrom.Configuration(buildConfig);
+            loggerConfiguration.Enrich.FromLogContext()
+            .WriteTo.Console();
+        });
+        return builder;
     }
 }

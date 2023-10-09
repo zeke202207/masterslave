@@ -1,20 +1,24 @@
-using Microsoft.Extensions.Configuration;
 using NetX.Common;
-using NetX.MemoryQueue;
 
-namespace NetX.Worker
+namespace NetX.Worker;
+
+public class Program
 {
-    public class Program
+    public static async Task Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
-            // Add services to the container.
-            builder.Services.AddWorker(builder.Configuration);
-            var app = builder.Build();
-            app.UseWorker();
-            app.Urls.Add($"http://*".AddRandomPort());
-            app.Run();
-        }
+        var hostBuilder = Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                {
+                    config.AddJsonFile("logging.json");
+                    config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                })
+                .ConfigureWebHostDefaults(webHostBuilder =>
+                {
+                    webHostBuilder.UseUrls($"http://*".AddRandomPort());
+                    webHostBuilder.UseStartup<Startup>();
+                });
+        hostBuilder.UseLogging();
+        var host = hostBuilder.Build();
+        await host.RunAsync();
     }
 }
