@@ -13,7 +13,7 @@ public abstract class MessageArgument : MessageGroupArgument
     /// 优先级
     /// 优先级越小越优先执行
     /// </summary>
-    public int Priority { get; set; } = 1;
+    public int Priority { get; set; } = int.MaxValue;
 
     /// <summary>
     /// 时间戳(UTC 1970-01-01 00:00:00)

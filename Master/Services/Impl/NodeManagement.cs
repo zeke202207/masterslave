@@ -2,40 +2,33 @@
 
 namespace NetX.Master;
 
+/// <summary>
+/// worker节点管理
+/// </summary>
 public class NodeManagement : INodeManagement
 {
-    private ILoadBalancing loadBalancing;
+    private readonly ILoadBalancing loadBalancing;
+    private readonly ILogger logger;
     private ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
     private ConcurrentDictionary<string, WorkerNode> nodes = new ConcurrentDictionary<string, WorkerNode>();
-    private readonly Timer timer;
-    private readonly int _interval = 10 * 1000;
 
-    public NodeManagement(ILoadBalancing loadBalancing)
+    /// <summary>
+    /// 节点管理实例对象
+    /// </summary>
+    /// <param name="loadBalancing"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public NodeManagement(ILoadBalancing loadBalancing, ILogger<NodeManagement> logger)
     {
         this.loadBalancing = loadBalancing ?? throw new ArgumentNullException(nameof(loadBalancing));
-        timer = new Timer(p =>
-        {
-            try
-            {
-                foreach (var node in nodes)
-                {
-                    if ((DateTime.Now - node.Value.LastHeartbeat).TotalMilliseconds > _interval)
-                        node.Value.Status = WorkNodeStatus.Offline;
-                    else
-                    {
-                        if (node.Value.Status == WorkNodeStatus.Offline)
-                            node.Value.Status = WorkNodeStatus.Idle;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }, null, 0, 1 * 1000);
+        this.logger = logger;
     }
 
-    public void AddNode(WorkerNode node)
+    /// <summary>
+    /// worker 节点注册
+    /// </summary>
+    /// <param name="node"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public void NodeRegister(WorkerNode node)
     {
         if (node == null)
             throw new ArgumentNullException(nameof(node));
@@ -50,7 +43,11 @@ public class NodeManagement : INodeManagement
         }
     }
 
-    public void RemoveNode(string nodeId)
+    /// <summary>
+    /// worker节点取消注册
+    /// </summary>
+    /// <param name="nodeId"></param>
+    public void NodeUnRegister(string nodeId)
     {
         _readerWriterLock.EnterWriteLock();
         try
@@ -63,6 +60,10 @@ public class NodeManagement : INodeManagement
         }
     }
 
+    /// <summary>
+    /// 获取全部可用的worker节点
+    /// </summary>
+    /// <returns></returns>
     public WorkerNode GetAvailableNode()
     {
         _readerWriterLock.EnterReadLock();
@@ -76,6 +77,11 @@ public class NodeManagement : INodeManagement
         }
     }
 
+    /// <summary>
+    /// 获取指定worker节点
+    /// </summary>
+    /// <param name="nodeId"></param>
+    /// <returns></returns>
     public WorkerNode GetNode(string nodeId)
     {
         _readerWriterLock.EnterReadLock();
@@ -89,6 +95,10 @@ public class NodeManagement : INodeManagement
         }
     }
 
+    /// <summary>
+    /// 获取全部节点
+    /// </summary>
+    /// <returns></returns>
     public List<WorkerNode> GetAllNodes()
     {
         _readerWriterLock.EnterReadLock();
@@ -102,6 +112,11 @@ public class NodeManagement : INodeManagement
         }
     }
 
+    /// <summary>
+    /// 更新指定worker节点属性
+    /// </summary>
+    /// <param name="nodeId"></param>
+    /// <param name="nodeFunc"></param>
     public void UpdateNode(string nodeId, Func<WorkerNode> nodeFunc)
     {
         var node = nodeFunc?.Invoke();

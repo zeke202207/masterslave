@@ -11,8 +11,8 @@ namespace Demo
         static async Task Main(string[] args)
         {
             //await CreateMultilTest();
-            await CreateOneTest();
-            //await CreateMultilParallelTest();
+            //await CreateOneTest();
+            await CreateMultilParallelTest();
             //await CreateOneParallelTest();
             Console.ReadLine();
             Console.WriteLine("Hello, World!");
@@ -119,7 +119,7 @@ namespace Demo
                     Console.ReadLine();
                 }
 
-                Console.WriteLine($"结果 {sw.Elapsed.TotalMilliseconds} -> {output}");
+                Console.WriteLine($"结果 {sw.Elapsed.TotalMilliseconds} -> {output} 毫秒");
             }
             catch (Exception ex)
             {

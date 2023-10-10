@@ -1,4 +1,5 @@
-﻿using NetX.Master.Model;
+﻿using NetX.Common;
+using NetX.Master.Model;
 using NetX.MemoryQueue;
 
 namespace NetX.Master;
@@ -10,6 +11,7 @@ public class JobConsumer : IConsumer<JobItemMessage>
     private readonly IPublisher _publisher;
     private readonly IJobExecutor _executor;
     private readonly ILogger _logger;
+    private readonly RetryPolicy _retryPolicy;
 
     public JobConsumer(INodeManagement nodeManager, IPublisher publisher, IJobExecutor jobExecutor, ILogger<JobConsumer> logger)
     {
@@ -17,19 +19,28 @@ public class JobConsumer : IConsumer<JobItemMessage>
         _publisher = publisher;
         _executor = jobExecutor;
         _logger = logger;
+        _retryPolicy = new RetryPolicy(maxRetryCount: 10, initialRetryInterval: TimeSpan.FromSeconds(1)); ;
     }
 
     public async Task Handle(JobItemMessage message)
     {
         Console.WriteLine(message.Timestamp.ToString());
         //获取下一个可用的工作节点
-        WorkerNode node = _nodeManager.GetAvailableNode();
+        WorkerNode node = null;
+        await _retryPolicy.ExecuteAsync(
+               async () =>
+               {
+                   node = _nodeManager.GetAvailableNode();
+                   if (null == node)
+                       throw new NodeNotFoundException();
+                   await Task.CompletedTask;
+               },
+               ex => ex is NodeNotFoundException nodeEx);
         if (node == null)
         {
-            //打入队尾
+            //无可用节点，job打入队首等待下一次处理
+            message.Priority -= 1;
             await _publisher.Publish<JobItemMessage>(MasterConst.C_QUEUENAME_JOBITEM, message);
-            //10s后再次处理(可以提取到配置文件)
-            await Task.Delay(TimeSpan.FromSeconds(10));
             return;
         }
         try

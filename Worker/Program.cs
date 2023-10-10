@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using NetX.Common;
 
 namespace NetX.Worker;
@@ -14,7 +15,12 @@ public class Program
                 })
                 .ConfigureWebHostDefaults(webHostBuilder =>
                 {
-                    webHostBuilder.UseUrls($"http://*".AddRandomPort());
+                    webHostBuilder.ConfigureKestrel(options =>
+                    {
+                        options.ListenAnyIP(7561.AddRandomPort(), listenOptions => listenOptions.Protocols = HttpProtocols.Http1);
+
+                    });
+                    //webHostBuilder.UseUrls($"http://*".AddRandomPort());
                     webHostBuilder.UseStartup<Startup>();
                 });
         hostBuilder.UseLogging();

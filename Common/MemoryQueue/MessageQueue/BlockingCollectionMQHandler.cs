@@ -5,6 +5,7 @@ namespace NetX.MemoryQueue;
 internal class BlockingCollectionMQHandler<TMessage> : MessageQueueHandler
     where TMessage : MessageArgument
 {
+    private static object _queueLock = new object();
     private BlockingCollection<TMessage> _queue;
     private PriorityQueue<TMessage, int> _priorityQueue;
     public Action<MessageArgument> _received;
@@ -35,8 +36,11 @@ internal class BlockingCollectionMQHandler<TMessage> : MessageQueueHandler
                         {
                             if (null != message && null != received)
                             {
-                                //_priorityQueue.Enqueue(message, message.Priority);
-                                _received.Invoke(message);
+                                lock (_queueLock)
+                                {
+                                    _priorityQueue.Enqueue(message, message.Priority);
+                                }
+                                //_received.Invoke(message);
                             }
                         }
                         catch (Exception _)
@@ -56,13 +60,14 @@ internal class BlockingCollectionMQHandler<TMessage> : MessageQueueHandler
             {
                 while (true)
                 {
-                    if (null == received ||
-                    _priorityQueue.Count == 0 ||
-                    !_priorityQueue.TryDequeue(out TMessage message, out int priority) ||
-                    null == message)
+                    TMessage message = null;
+                    lock (_queueLock)
                     {
-                        Thread.Sleep(1 * 10);
-                        continue;
+                        if (null == received ||
+                        _priorityQueue.Count == 0 ||
+                        !_priorityQueue.TryDequeue(out message, out int priority) ||
+                        null == message)
+                            continue;
                     }
                     received.Invoke(message);
                 }

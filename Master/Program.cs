@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using NetX.Common;
 
 namespace NetX.Master;
@@ -16,15 +17,13 @@ public class Program
                 {
                     webHostBuilder.ConfigureKestrel(options =>
                     {
+                        options.ListenAnyIP(6583.AddRandomPort(), listenOptions => listenOptions.Protocols = HttpProtocols.Http1);
                         var configuration = new ConfigurationBuilder()
                                         .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                                         .Build();
-                        var configPort = configuration.GetSection("Master:Port").Value;
-                        int port = 5600;
-                        int.TryParse(configPort, out port);
-                        options.ListenAnyIP(port, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
+                        options.ListenAnyIP(configuration.GetValue<int>("Master:Port"), listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
                     });
-                    webHostBuilder.UseUrls($"http://*".AddRandomPort());
+                    //webHostBuilder.UseUrls($"http://*".AddRandomPort());
                     webHostBuilder.UseStartup<Startup>();
                 });
         hostBuilder.UseLogging();

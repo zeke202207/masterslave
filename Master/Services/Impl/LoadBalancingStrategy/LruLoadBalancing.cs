@@ -12,6 +12,11 @@ public class LruLoadBalancing : ILoadBalancing
         _logger = logger;
     }
 
+    /// <summary>
+    /// 获取可用的worker节点
+    /// </summary>
+    /// <param name="nodes"></param>
+    /// <returns></returns>
     public WorkerNode GetNode(IEnumerable<WorkerNode> nodes)
     {
         try

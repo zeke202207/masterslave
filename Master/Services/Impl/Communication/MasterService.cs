@@ -10,14 +10,14 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
     private readonly IJobPublisher _jobPublisher;
     private readonly ISecurityPolicy _securityPolicy;
     private readonly ILogger _logger;
-    private readonly ResultDispatcher _dataTransferCenter;
+    private readonly IResultDispatcher _dataTransferCenter;
 
 
     public MasterService(
         INodeManagement nodeManagement,
         IJobPublisher jobPublisher,
         ISecurityPolicy securityPolicy,
-        ResultDispatcher dataTransferCenter,
+        IResultDispatcher dataTransferCenter,
         ILogger<MasterService> logger)
     {
         _nodeManagement = nodeManagement;
@@ -39,7 +39,7 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
         {
             if (!IsRequestAllowed(context))
                 return await Task.FromResult(new RegisterNodeResponse() { IsSuccess = false, ErrorMessage = $"节点未在授权列表，注册失败" });
-            _nodeManagement.AddNode(new WorkerNode()
+            _nodeManagement.NodeRegister(new WorkerNode()
             {
                 Id = request.Node.Id,
                 Status = request.Node.IsBusy ? WorkNodeStatus.Busy : WorkNodeStatus.Idle,
@@ -66,7 +66,7 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
         {
             if (!IsRequestAllowed(context))
                 return await Task.FromResult(new UnregisterNodeResponse() { IsSuccess = false, ErrorMessage = $"节点未在授权列表，注册失败" });
-            _nodeManagement.RemoveNode(request.Node.Id);
+            _nodeManagement.NodeUnRegister(request.Node.Id);
         }
         catch (Exception ex)
         {
@@ -108,7 +108,7 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
             finally
             {
                 _jobPublisher.Unsubscribe(jobObserver);
-                _nodeManagement.RemoveNode(request.Id);
+                _nodeManagement.NodeUnRegister(request.Id);
             }
         }
         catch (Exception ex)

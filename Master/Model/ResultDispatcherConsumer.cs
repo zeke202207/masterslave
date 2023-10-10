@@ -34,4 +34,9 @@ public class ResultDispatcherConsumer
     public CancellationTokenSource TokenSource { get; set; }
 
     public IServerStreamWriter<ExecuteTaskResponse> StreamWriter { get; set; }
+
+    public bool IsTimeout()
+    {
+        return DateTime.Now - this.CreatTime > TimeSpan.FromSeconds(Timeout);
+    }
 }

@@ -9,9 +9,9 @@ public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceS
 {
     private readonly IPublisher _publisher;
     private readonly ILogger _logger;
-    private readonly ResultDispatcher _dataTransferCenter;
+    private readonly IResultDispatcher _dataTransferCenter;
 
-    public MasterServiceSDK(IPublisher publisher, ILogger<MasterServiceSDK> logger, ResultDispatcher dataTransferCenter)
+    public MasterServiceSDK(IPublisher publisher, ILogger<MasterServiceSDK> logger, IResultDispatcher dataTransferCenter)
     {
         _publisher = publisher;
         _logger = logger;
@@ -32,7 +32,7 @@ public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceS
         try
         {
             consumer.TokenSource.CancelAfter(TimeSpan.FromSeconds(timeout));
-            _dataTransferCenter.Regist(consumer);
+            _dataTransferCenter.ConsumerRegister(consumer);
             await _publisher.Publish<JobItemMessage>(MasterConst.C_QUEUENAME_JOBITEM, new JobItemMessage(jobItem));
             await Task.Delay(Timeout.Infinite, consumer.TokenSource.Token);
         }
@@ -42,7 +42,7 @@ public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceS
         }
         finally
         {
-            _dataTransferCenter.UnRegist(consumer);
+            _dataTransferCenter.ConsumerUnRegister(consumer);
         }
     }
 }

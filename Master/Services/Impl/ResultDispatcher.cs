@@ -1,8 +1,6 @@
 ﻿using Google.Protobuf;
-using Grpc.Core;
 using MasterSDKService;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 
 namespace NetX.Master;
 
@@ -10,7 +8,7 @@ namespace NetX.Master;
 /// 结果分发器
 /// 根据JobId，将worker处理结果分发给任务的调用者
 /// </summary>
-public sealed class ResultDispatcher
+public sealed class ResultDispatcher : IResultDispatcher
 {
     /// <summary>
     /// 任务执行结果集合
@@ -31,22 +29,13 @@ public sealed class ResultDispatcher
         _logger = logger;
         //开启新的线程，监听任务结果集合
         Task.Factory.StartNew(() => HandlingResultListener());
-        //开启新的线程，清理无效的消费监听
-        Task.Factory.StartNew(async () =>
-        {
-            while (true)
-            {
-                await Task.Delay(TimeSpan.FromSeconds(MasterConst.C_REQULTDISPATCHERCONSUMER_CLEARFREQUENCY));
-                Cleanup();
-            }
-        },TaskCreationOptions.LongRunning);
     }
 
     /// <summary>
     /// 注册结果监听
     /// </summary>
     /// <param name="consumer"></param>
-    public void Regist(ResultDispatcherConsumer consumer)
+    public void ConsumerRegister(ResultDispatcherConsumer consumer)
     {
         _consumers.AddOrUpdate(consumer.JobId, consumer, (oldKey, oldValue) => consumer);
     }
@@ -55,7 +44,7 @@ public sealed class ResultDispatcher
     /// 取消结果监听注册
     /// </summary>
     /// <param name="consumer"></param>
-    public void UnRegist(ResultDispatcherConsumer consumer)
+    public void ConsumerUnRegister(ResultDispatcherConsumer consumer)
     {
         _consumers.Remove(consumer.JobId, out _);
     }
@@ -67,6 +56,16 @@ public sealed class ResultDispatcher
     public void WriteResult(ResultModel result)
     {
         _results.TryAdd(result);
+    }
+
+    /// <summary>
+    /// 获取全部订阅的结果消费者
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerable<ResultDispatcherConsumer> GetConsumers()
+    {
+        foreach (var consumer in _consumers)
+            yield return consumer.Value;
     }
 
     /// <summary>
@@ -91,26 +90,6 @@ public sealed class ResultDispatcher
                     _logger.LogError("获取结果失败", ex);
                 }
             });
-        }
-    }
-
-    /// <summary>
-    /// 清除无效的结果消费者
-    /// </summary>
-    private void Cleanup()
-    {
-        try
-        {
-            DateTime now = DateTime.Now;
-            var invalidItems = _consumers.Where(entry => now - entry.Value.CreatTime > TimeSpan.FromSeconds(entry.Value.Timeout)).ToList();
-            foreach (var item in invalidItems)
-            {
-                UnRegist(item.Value);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError("清理无效的消费者失败", ex);
         }
     }
 }

@@ -20,4 +20,10 @@ public static class ExtentionHelper
         int port = random.Next(1024, 65535);
         return url + ":" + port;
     }
+
+    public static int AddRandomPort(this int port)
+    {
+        Random random = new Random();
+        return random.Next(1024, 65535);
+    }
 }

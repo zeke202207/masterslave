@@ -8,6 +8,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddWorker(this IServiceCollection services, IConfiguration config)
     {
+        services.AddControllers();
+
         services.Configure<WorkerConfig>(config.GetSection("WorkerConfig"));
         services.AddSingleton<IMasterClient, MasterClient>();
         services.AddHostedService<WorkerHostedService>();
