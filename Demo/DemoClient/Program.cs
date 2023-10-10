@@ -10,12 +10,15 @@ namespace Demo
     {
         static async Task Main(string[] args)
         {
-            await Test0();
+            //await CreateMultilTest();
+            await CreateOneTest();
+            //await CreateMultilParallelTest();
+            //await CreateOneParallelTest();
             Console.ReadLine();
             Console.WriteLine("Hello, World!");
         }
 
-        private static async Task Test()
+        private static async Task CreateMultilTest()
         {
             var factory = new MasterServiceSDKFactory("http://localhost:5600");
             while (true)
@@ -27,7 +30,7 @@ namespace Demo
                         byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
                         var input = Guid.NewGuid().ToString();
                         ByteString byteString = ByteString.CopyFrom(Encoding.Default.GetBytes(input));
-                        Record(() => client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString }).GetAwaiter().GetResult(), input);
+                        Record(() => client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString , Timeout = 60 }).GetAwaiter().GetResult(), input);
                     }
                 }
                 catch (Exception)
@@ -38,7 +41,7 @@ namespace Demo
 
         }
 
-        private static async Task Test0()
+        private static async Task CreateOneTest()
         {
             try
             {
@@ -49,7 +52,7 @@ namespace Demo
                         byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
                         var input = Guid.NewGuid().ToString();
                         ByteString byteString = ByteString.CopyFrom(Encoding.Default.GetBytes(input));
-                        Record(() => client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString }).GetAwaiter().GetResult(), input);
+                        Record(() => client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString, Timeout = 60 }).GetAwaiter().GetResult(), input);
 
                         //Console.ReadLine();
                     }
@@ -61,7 +64,7 @@ namespace Demo
             }
         }
 
-        private static async Task Test1()
+        private static async Task CreateMultilParallelTest()
         {
             while (true)
             {
@@ -73,30 +76,55 @@ namespace Demo
                             byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
                             var input = Guid.NewGuid().ToString();
                             ByteString byteString = ByteString.CopyFrom(Encoding.Default.GetBytes(input));
-                            Record(() => client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString }).GetAwaiter().GetResult(), input);
+                            Record(() => client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString, Timeout = 60 }).GetAwaiter().GetResult(), input);
                         }
                     });
             }
         }
 
+        private static async Task CreateOneParallelTest()
+        {
+            while (true)
+            {
+                var factory = new MasterServiceSDKFactory("http://localhost:5600");
+                Parallel.For(0, 10, i =>
+                {
+                    using (var client = factory.CreateClient())
+                    {
+                        byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
+                        var input = Guid.NewGuid().ToString();
+                        ByteString byteString = ByteString.CopyFrom(Encoding.Default.GetBytes(input));
+                        Record(() => client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString, Timeout = 60 }).GetAwaiter().GetResult(), input);
+                    }
+                });
+            }
+        }
+
         private static void Record(Func<byte[]> func ,string input)
         {
-            Stopwatch sw = Stopwatch.StartNew();
-            sw.Start();
-
-            var result = func.Invoke();
-
-            sw.Stop();
-
-            var output = Encoding.Default.GetString(result);
-            var isSame = input == output;
-            if(!isSame)
+            try
             {
-                Console.WriteLine("结果错误");
-                Console.ReadLine();
-            }
+                Stopwatch sw = Stopwatch.StartNew();
+                sw.Start();
 
-            Console.WriteLine($"结果 {sw.Elapsed.TotalMilliseconds} -> {output}");
+                var result = func.Invoke();
+
+                sw.Stop();
+
+                var output = Encoding.Default.GetString(result);
+                var isSame = input == output;
+                if (!isSame)
+                {
+                    Console.WriteLine("结果错误");
+                    Console.ReadLine();
+                }
+
+                Console.WriteLine($"结果 {sw.Elapsed.TotalMilliseconds} -> {output}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
         }
     }
 }

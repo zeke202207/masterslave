@@ -10,14 +10,14 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
     private readonly IJobPublisher _jobPublisher;
     private readonly ISecurityPolicy _securityPolicy;
     private readonly ILogger _logger;
-    private readonly DataTransferCenter _dataTransferCenter;
+    private readonly ResultDispatcher _dataTransferCenter;
 
 
     public MasterService(
         INodeManagement nodeManagement,
         IJobPublisher jobPublisher,
         ISecurityPolicy securityPolicy,
-        DataTransferCenter dataTransferCenter,
+        ResultDispatcher dataTransferCenter,
         ILogger<MasterService> logger)
     {
         _nodeManagement = nodeManagement;
@@ -129,7 +129,7 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
         {
             await foreach (var resp in requestStream.ReadAllAsync())
             {
-                _dataTransferCenter.ProcessData(new ResultModel()
+                _dataTransferCenter.WriteResult(new ResultModel()
                 {
                     JobId = resp.Id,
                     Result = resp.Result.ToByteArray(),

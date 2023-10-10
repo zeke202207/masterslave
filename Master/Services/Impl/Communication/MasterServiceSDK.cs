@@ -9,9 +9,9 @@ public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceS
 {
     private readonly IPublisher _publisher;
     private readonly ILogger _logger;
-    private readonly DataTransferCenter _dataTransferCenter;
+    private readonly ResultDispatcher _dataTransferCenter;
 
-    public MasterServiceSDK(IPublisher publisher, ILogger<MasterServiceSDK> logger, DataTransferCenter dataTransferCenter)
+    public MasterServiceSDK(IPublisher publisher, ILogger<MasterServiceSDK> logger, ResultDispatcher dataTransferCenter)
     {
         _publisher = publisher;
         _logger = logger;
@@ -20,9 +20,10 @@ public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceS
 
     public override async Task ExecuteTask(ExecuteTaskRequest request, IServerStreamWriter<ExecuteTaskResponse> responseStream, ServerCallContext context)
     {
+        int timeout = request.Timeout <= 0 ? 60 : request.Timeout;
         //1. Create a job and add it to the queue
         var jobItem = new JobItem(Guid.NewGuid().ToString("N"), request.Data.ToByteArray());
-        var consumer = new DataTransferResultConsumer()
+        var consumer = new ResultDispatcherConsumer(timeout)
         {
             JobId = jobItem.jobId,
             TokenSource = new CancellationTokenSource(),
@@ -30,7 +31,7 @@ public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceS
         };
         try
         {
-            consumer.TokenSource.CancelAfter(TimeSpan.FromSeconds(30));
+            consumer.TokenSource.CancelAfter(TimeSpan.FromSeconds(timeout));
             _dataTransferCenter.Regist(consumer);
             await _publisher.Publish<JobItemMessage>(MasterConst.C_QUEUENAME_JOBITEM, new JobItemMessage(jobItem));
             await Task.Delay(Timeout.Infinite, consumer.TokenSource.Token);

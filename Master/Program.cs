@@ -16,7 +16,13 @@ public class Program
                 {
                     webHostBuilder.ConfigureKestrel(options =>
                     {
-                        options.ListenAnyIP(5600, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
+                        var configuration = new ConfigurationBuilder()
+                                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                                        .Build();
+                        var configPort = configuration.GetSection("Master:Port").Value;
+                        int port = 5600;
+                        int.TryParse(configPort, out port);
+                        options.ListenAnyIP(port, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
                     });
                     webHostBuilder.UseUrls($"http://*".AddRandomPort());
                     webHostBuilder.UseStartup<Startup>();

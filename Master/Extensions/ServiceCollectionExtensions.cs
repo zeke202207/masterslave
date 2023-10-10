@@ -6,7 +6,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddMaster(this IServiceCollection services)
     {
-        services.AddSingleton<DataTransferCenter>();
+        services.AddSingleton<ResultDispatcher>();
         services.AddSingleton<INodeManagement, NodeManagement>();
         services.AddSingleton<ILoadBalancing, LruLoadBalancing>();
         services.AddSingleton<IJobPublisher, JobPublisher>();
