@@ -3,11 +3,18 @@
 namespace NetX.Master;
 
 /// <summary>
-/// 观察者发布类
+/// 任务监听观察者发布管理
 /// </summary>
 public class JobPublisher : IJobPublisher
 {
+    /// <summary>
+    /// 任务监听集合
+    /// </summary>
     private readonly ConcurrentBag<IObserver<WorkerJob>> _observers = new ConcurrentBag<IObserver<WorkerJob>>();
+
+    /// <summary>
+    /// 读写锁
+    /// </summary>
     private ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
 
     /// <summary>

@@ -11,10 +11,10 @@ public class IpWhitelistSecurityPolicy : ISecurityPolicy
     public IpWhitelistSecurityPolicy(IConfiguration configuration, ILogger<IpWhitelistSecurityPolicy> logger)
     {
         _logger = logger;
-        _ipWhitelist = new HashSet<string>(configuration.GetSection("Master").GetSection("IpWhitelist").Get<string[]>());
+        _ipWhitelist = new HashSet<string>(configuration.GetSection("Master:IpWhitelist").Get<string[]>());
     }
 
-    public bool IsRequestAllowed(SecurityContext context)
+    public bool IsRequestAllowed(AppContext context)
     {
         try
         {

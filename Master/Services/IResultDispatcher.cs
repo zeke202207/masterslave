@@ -1,5 +1,8 @@
 ﻿namespace NetX.Master;
 
+/// <summary>
+/// 结果分发器
+/// </summary>
 public interface IResultDispatcher
 {
     /// <summary>

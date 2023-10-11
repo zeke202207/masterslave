@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using NetX.Common;
 
 namespace NetX.Master;
@@ -23,7 +22,6 @@ public class Program
                                         .Build();
                         options.ListenAnyIP(configuration.GetValue<int>("Master:Port"), listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
                     });
-                    //webHostBuilder.UseUrls($"http://*".AddRandomPort());
                     webHostBuilder.UseStartup<Startup>();
                 });
         hostBuilder.UseLogging();

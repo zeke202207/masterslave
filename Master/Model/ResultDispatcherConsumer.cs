@@ -29,6 +29,9 @@ public class ResultDispatcherConsumer
     /// </summary>
     public int Timeout { get; private set; }
 
+    /// <summary>
+    /// job唯一标识
+    /// </summary>
     public string JobId { get; set; }
 
     public CancellationTokenSource TokenSource { get; set; }

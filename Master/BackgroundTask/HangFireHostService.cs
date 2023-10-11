@@ -1,48 +1,68 @@
 ﻿using Hangfire;
 
-namespace NetX.Master.BackgroundTask
+namespace NetX.Master;
+
+/// <summary>
+/// 定时任务服务主机
+/// </summary>
+public class HangFireHostService : IHostedService
 {
-    public class HangFireHostService : IHostedService
+    /// <summary>
+    /// 所有任务集合
+    /// </summary>
+    private readonly IEnumerable<IJob> _jobs;
+    private readonly ILogger _logger;
+
+    /// <summary>
+    /// 定时任务服务主机实例对象
+    /// </summary>
+    /// <param name="jobs"></param>
+    /// <param name="logger"></param>
+    public HangFireHostService(IEnumerable<IJob> jobs, ILogger<HangFireHostService> logger)
     {
-        private readonly IEnumerable<IJob> _jobs;
-        private readonly ILogger _logger;
+        _jobs = jobs;
+        _logger = logger;
+    }
 
-        public HangFireHostService(IEnumerable<IJob> jobs, ILogger<HangFireHostService> logger)
+    /// <summary>
+    /// 主机服务开启
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        try
         {
-            _jobs = jobs;
-            _logger = logger;
+            foreach (var job in _jobs)
+            {
+                RecurringJob.AddOrUpdate($"{job.Id}", () => job.RunJob(), job.Cron);
+            }
         }
+        catch (Exception ex)
+        {
+            _logger.LogError("注册job失败", ex);
+        }
+        await Task.CompletedTask;
+    }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// 主机服务停止
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        try
         {
-            try
+            foreach (var job in _jobs)
             {
-                foreach (var job in _jobs)
-                {
-                    RecurringJob.AddOrUpdate($"{job.Id}", () => job.RunJob(), job.Cron);
-                }
+                RecurringJob.RemoveIfExists($"{job.Id}");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError("注册job失败", ex);
-            }
-            await Task.CompletedTask;
         }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
+        catch (Exception ex)
         {
-            try
-            {
-                foreach (var job in _jobs)
-                {
-                    RecurringJob.RemoveIfExists($"{job.Id}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("取消job失败", ex);
-            }
-            await Task.CompletedTask;
+            _logger.LogError("取消job失败", ex);
         }
+        await Task.CompletedTask;
     }
 }

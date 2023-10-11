@@ -4,6 +4,9 @@ using NetX.Common;
 
 namespace NetX.Master;
 
+/// <summary>
+/// grpc服务master实例
+/// </summary>
 public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeServiceBase
 {
     private readonly INodeManagement _nodeManagement;
@@ -12,7 +15,14 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
     private readonly ILogger _logger;
     private readonly IResultDispatcher _dataTransferCenter;
 
-
+    /// <summary>
+    /// grpc服务master实例
+    /// </summary>
+    /// <param name="nodeManagement"></param>
+    /// <param name="jobPublisher"></param>
+    /// <param name="securityPolicy"></param>
+    /// <param name="dataTransferCenter"></param>
+    /// <param name="logger"></param>
     public MasterService(
         INodeManagement nodeManagement,
         IJobPublisher jobPublisher,
@@ -205,6 +215,6 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
     /// <returns></returns>
     private bool IsRequestAllowed(ServerCallContext context)
     {
-        return _securityPolicy.IsRequestAllowed(new SecurityContext() { ClientIp = context.Host });
+        return _securityPolicy.IsRequestAllowed(new AppContext() { ClientIp = context.Host });
     }
 }

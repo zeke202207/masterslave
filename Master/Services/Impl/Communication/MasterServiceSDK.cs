@@ -5,12 +5,21 @@ using NetX.MemoryQueue;
 
 namespace NetX.Master;
 
+/// <summary>
+/// grpc服务master提供的SDK
+/// </summary>
 public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceSDKBase
 {
     private readonly IPublisher _publisher;
     private readonly ILogger _logger;
     private readonly IResultDispatcher _dataTransferCenter;
 
+    /// <summary>
+    /// SDK实例
+    /// </summary>
+    /// <param name="publisher"></param>
+    /// <param name="logger"></param>
+    /// <param name="dataTransferCenter"></param>
     public MasterServiceSDK(IPublisher publisher, ILogger<MasterServiceSDK> logger, IResultDispatcher dataTransferCenter)
     {
         _publisher = publisher;
@@ -18,6 +27,13 @@ public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceS
         _dataTransferCenter = dataTransferCenter;
     }
 
+    /// <summary>
+    /// 开始执行任务
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="responseStream"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public override async Task ExecuteTask(ExecuteTaskRequest request, IServerStreamWriter<ExecuteTaskResponse> responseStream, ServerCallContext context)
     {
         int timeout = request.Timeout <= 0 ? 60 : request.Timeout;
@@ -38,7 +54,7 @@ public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceS
         }
         catch (Exception ex)
         {
-            //TODO:
+            _logger.LogError("执行任务失败", ex);
         }
         finally
         {

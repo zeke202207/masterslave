@@ -1,13 +1,14 @@
 ﻿namespace NetX.Master;
 
+/// <summary>
+/// 安全测率
+/// </summary>
 public interface ISecurityPolicy
 {
-    bool IsRequestAllowed(SecurityContext context);
-}
-
-public class SecurityContext
-{
-    public string ClientIp { get; set; }
-    // Add other properties as needed, for example:
-    // public string OAuthToken { get; set; }
+    /// <summary>
+    /// 判断请求是否允许
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    bool IsRequestAllowed(AppContext context);
 }

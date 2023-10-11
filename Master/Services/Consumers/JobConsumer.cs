@@ -1,9 +1,12 @@
 ﻿using NetX.Common;
-using NetX.Master.Model;
 using NetX.MemoryQueue;
 
 namespace NetX.Master;
 
+/// <summary>
+/// work节点消费者
+/// 任务的执行者
+/// </summary>
 public class JobConsumer : IConsumer<JobItemMessage>
 {
     public string QueueName => MasterConst.C_QUEUENAME_JOBITEM;
@@ -13,6 +16,13 @@ public class JobConsumer : IConsumer<JobItemMessage>
     private readonly ILogger _logger;
     private readonly RetryPolicy _retryPolicy;
 
+    /// <summary>
+    /// 任务执行者实例对象
+    /// </summary>
+    /// <param name="nodeManager"></param>
+    /// <param name="publisher"></param>
+    /// <param name="jobExecutor"></param>
+    /// <param name="logger"></param>
     public JobConsumer(INodeManagement nodeManager, IPublisher publisher, IJobExecutor jobExecutor, ILogger<JobConsumer> logger)
     {
         _nodeManager = nodeManager;
@@ -22,6 +32,11 @@ public class JobConsumer : IConsumer<JobItemMessage>
         _retryPolicy = new RetryPolicy(maxRetryCount: 10, initialRetryInterval: TimeSpan.FromSeconds(1)); ;
     }
 
+    /// <summary>
+    /// 开始执行任务
+    /// </summary>
+    /// <param name="message"></param>
+    /// <returns></returns>
     public async Task Handle(JobItemMessage message)
     {
         Console.WriteLine(message.Timestamp.ToString());
@@ -38,7 +53,7 @@ public class JobConsumer : IConsumer<JobItemMessage>
                ex => ex is NodeNotFoundException nodeEx);
         if (node == null)
         {
-            //无可用节点，job打入队首等待下一次处理
+            //无可用节点，job的message优先级升高并打入优先级队列队首，等待下一次处理
             message.Priority -= 1;
             await _publisher.Publish<JobItemMessage>(MasterConst.C_QUEUENAME_JOBITEM, message);
             return;

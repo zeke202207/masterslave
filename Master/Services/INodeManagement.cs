@@ -1,5 +1,8 @@
 ﻿namespace NetX.Master;
 
+/// <summary>
+/// 节点管理器
+/// </summary>
 public interface INodeManagement
 {
     /// <summary>
