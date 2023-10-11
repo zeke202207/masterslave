@@ -82,8 +82,8 @@ public sealed class ResultDispatcher : IResultDispatcher
                     if (!_consumers.ContainsKey(result.JobId))
                         return;
                     var consumer = _consumers[result.JobId];
-                    var _ = consumer.StreamWriter.WriteAsync(new ExecuteTaskResponse() { Result = ByteString.CopyFrom(result.Result) }, consumer.TokenSource.Token);
-                    consumer.TokenSource.Cancel();
+                    var _ = consumer.StreamWriter.WriteAsync(new ExecuteTaskResponse() { Result = ByteString.CopyFrom(result.Result) }, consumer.CancellationToken);
+                    consumer.Complete();
                 }
                 catch (Exception ex)
                 {

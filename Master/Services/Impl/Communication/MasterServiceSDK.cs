@@ -1,7 +1,7 @@
 ﻿using Grpc.Core;
 using MasterSDKService;
-using NetX.Master.Model;
 using NetX.MemoryQueue;
+using Newtonsoft.Json.Linq;
 
 namespace NetX.Master;
 
@@ -12,7 +12,7 @@ public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceS
 {
     private readonly IPublisher _publisher;
     private readonly ILogger _logger;
-    private readonly IResultDispatcher _dataTransferCenter;
+    private readonly IResultDispatcher _resultDispatcher;
 
     /// <summary>
     /// SDK实例
@@ -24,7 +24,7 @@ public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceS
     {
         _publisher = publisher;
         _logger = logger;
-        _dataTransferCenter = dataTransferCenter;
+        _resultDispatcher = dataTransferCenter;
     }
 
     /// <summary>
@@ -42,15 +42,17 @@ public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceS
         var consumer = new ResultDispatcherConsumer(timeout)
         {
             JobId = jobItem.jobId,
-            TokenSource = new CancellationTokenSource(),
             StreamWriter = responseStream,
         };
         try
         {
-            consumer.TokenSource.CancelAfter(TimeSpan.FromSeconds(timeout));
-            _dataTransferCenter.ConsumerRegister(consumer);
+            _resultDispatcher.ConsumerRegister(consumer);
             await _publisher.Publish<JobItemMessage>(MasterConst.C_QUEUENAME_JOBITEM, new JobItemMessage(jobItem));
-            await Task.Delay(Timeout.Infinite, consumer.TokenSource.Token);
+            await Task.Delay(Timeout.Infinite, consumer.CancellationToken);
+        }
+        catch(OperationCanceledException ex) when( !consumer.IsComplete)
+        {
+            _logger.LogError("执行超时", ex);
         }
         catch (Exception ex)
         {
@@ -58,7 +60,7 @@ public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceS
         }
         finally
         {
-            _dataTransferCenter.ConsumerUnRegister(consumer);
+            _resultDispatcher.ConsumerUnRegister(consumer);
         }
     }
 }

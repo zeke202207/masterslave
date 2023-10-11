@@ -6,7 +6,7 @@ namespace NetX.Master;
 /// 无效节点定期清理job
 /// </summary>
 // 设置超时时间，以防止任务长时间占用资源
-[DisableConcurrentExecution(timeoutInSeconds: 5)] 
+[DisableConcurrentExecution(timeoutInSeconds: 5)]
 public class CleanupWorkerNode : IJob
 {
     public string Cron => "0/1 * * * * ?";
@@ -25,7 +25,6 @@ public class CleanupWorkerNode : IJob
     {
         try
         {
-            _logger.LogError($"{nameof(CleanupWorkerNode)}");
             foreach (var node in _nodeManagement.GetAllNodes())
             {
                 if (node.IsTimeout())

@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using MasterSDKService;
+using NetX.MemoryQueue;
 
 namespace NetX.Master;
 
@@ -8,6 +9,8 @@ namespace NetX.Master;
 /// </summary>
 public class ResultDispatcherConsumer
 {
+    private readonly CancellationTokenSource TokenSource;
+
     /// <summary>
     /// 当前时间 - 创建时间 > 超时时间，即为超时
     /// 系统自动清理改消费者
@@ -17,6 +20,9 @@ public class ResultDispatcherConsumer
     {
         CreatTime = DateTime.Now;
         Timeout = timeout;
+        TokenSource = new CancellationTokenSource();
+        TokenSource.CancelAfter(TimeSpan.FromSeconds(Timeout));
+        CancellationToken = TokenSource.Token;
     }
 
     /// <summary>
@@ -34,9 +40,18 @@ public class ResultDispatcherConsumer
     /// </summary>
     public string JobId { get; set; }
 
-    public CancellationTokenSource TokenSource { get; set; }
+    public CancellationToken CancellationToken { get; private set; }
+
+    public bool IsComplete { get; private set; } = false;
 
     public IServerStreamWriter<ExecuteTaskResponse> StreamWriter { get; set; }
+
+    public void Complete()
+    {
+        IsComplete = true;
+        if (TokenSource.IsCancellationRequested)
+            TokenSource.Cancel();
+    }
 
     public bool IsTimeout()
     {

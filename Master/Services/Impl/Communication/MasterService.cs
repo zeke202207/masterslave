@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using MasterWorkerService;
+using Microsoft.AspNetCore.Components.Forms;
 using NetX.Common;
 
 namespace NetX.Master;
@@ -9,32 +10,16 @@ namespace NetX.Master;
 /// </summary>
 public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeServiceBase
 {
-    private readonly INodeManagement _nodeManagement;
-    private readonly IJobPublisher _jobPublisher;
-    private readonly ISecurityPolicy _securityPolicy;
-    private readonly ILogger _logger;
-    private readonly IResultDispatcher _dataTransferCenter;
+    private readonly IServiceProvider _appServices;
 
     /// <summary>
     /// grpc服务master实例
     /// </summary>
-    /// <param name="nodeManagement"></param>
-    /// <param name="jobPublisher"></param>
-    /// <param name="securityPolicy"></param>
-    /// <param name="dataTransferCenter"></param>
-    /// <param name="logger"></param>
+    /// <param name="appServices"></param>
     public MasterService(
-        INodeManagement nodeManagement,
-        IJobPublisher jobPublisher,
-        ISecurityPolicy securityPolicy,
-        IResultDispatcher dataTransferCenter,
-        ILogger<MasterService> logger)
+        IServiceProvider appServices)
     {
-        _nodeManagement = nodeManagement;
-        _jobPublisher = jobPublisher;
-        _securityPolicy = securityPolicy;
-        _logger = logger;
-        _dataTransferCenter = dataTransferCenter;
+        _appServices = appServices;
     }
 
     /// <summary>
@@ -45,23 +30,17 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
     /// <returns></returns>
     public override async Task<RegisterNodeResponse> RegisterNode(RegisterNodeRequest request, ServerCallContext context)
     {
-        try
-        {
-            if (!IsRequestAllowed(context))
-                return await Task.FromResult(new RegisterNodeResponse() { IsSuccess = false, ErrorMessage = $"节点未在授权列表，注册失败" });
-            _nodeManagement.NodeRegister(new WorkerNode()
-            {
-                Id = request.Node.Id,
-                Status = request.Node.IsBusy ? WorkNodeStatus.Busy : WorkNodeStatus.Idle,
-                LastUsed = request.Node.LastUsed.UnixTimestampToDateTime(),
-                LastHeartbeat = request.Node.LastUsed.UnixTimestampToDateTime(),
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError("节点注册失败", ex);
-        }
-        return await Task.FromResult(new RegisterNodeResponse() { IsSuccess = true });
+        var grpcContext = CreateGrpcContext<RegisterNodeRequest, RegisterNodeResponse>(context, request, new RegisterNodeResponse());
+
+        var application = new ApplicationBuilder<GrpcContext<RegisterNodeRequest, RegisterNodeResponse>>(_appServices)
+                .Use<AuthMiddleware<RegisterNodeRequest, RegisterNodeResponse>>()
+                .Use<RegisterMiddleware>()
+                .Build();
+
+        await application.Invoke(grpcContext);
+        grpcContext.Response.Response.IsSuccess = true;
+
+        return await Task.FromResult(grpcContext.Response.Response);
     }
 
     /// <summary>
@@ -72,17 +51,17 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
     /// <returns></returns>
     public async override Task<UnregisterNodeResponse> UnregisterNode(UnregisterNodeRequest request, ServerCallContext context)
     {
-        try
-        {
-            if (!IsRequestAllowed(context))
-                return await Task.FromResult(new UnregisterNodeResponse() { IsSuccess = false, ErrorMessage = $"节点未在授权列表，注册失败" });
-            _nodeManagement.NodeUnRegister(request.Node.Id);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError("节点取消注册失败", ex);
-        }
-        return await Task.FromResult(new UnregisterNodeResponse() { IsSuccess = true });
+        var grpcContext = CreateGrpcContext<UnregisterNodeRequest, UnregisterNodeResponse>(context, request, new UnregisterNodeResponse());
+
+        var application = new ApplicationBuilder<GrpcContext<UnregisterNodeRequest, UnregisterNodeResponse>>(_appServices)
+                .Use<AuthMiddleware<UnregisterNodeRequest, UnregisterNodeResponse>>()
+                .Use<UnRegisterMiddleware>()
+                .Build();
+
+        await application.Invoke(grpcContext);
+        grpcContext.Response.Response.IsSuccess = true;
+
+        return await Task.FromResult(grpcContext.Response.Response);
     }
 
     /// <summary>
@@ -95,36 +74,16 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
     /// <returns></returns>
     public async override Task ListenForJob(ListenForJobRequest request, IServerStreamWriter<ListenForJobResponse> responseStream, ServerCallContext context)
     {
-        try
-        {
-            if (null == request || string.IsNullOrWhiteSpace(request.Id))
-                throw new ArgumentNullException(nameof(request));
-            var jobObserver = new JobObserver(request.Id, responseStream);
-            try
-            {
-                //观察者注入
-                _jobPublisher.Subscribe(jobObserver);
-                // Wait until the client disconnects.
-                await Task.Delay(Timeout.Infinite, context.CancellationToken);
-            }
-            catch (TaskCanceledException ex)
-            {
-                _logger.LogError("客户端取消任务监听", ex);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("节点监听任务失败", ex);
-            }
-            finally
-            {
-                _jobPublisher.Unsubscribe(jobObserver);
-                _nodeManagement.NodeUnRegister(request.Id);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError("节点监听任务失败", ex);
-        }
+        var grpcContext = CreateGrpcContext<ListenForJobRequest, ListenForJobResponse>(context, request, new ListenForJobResponse());
+        grpcContext.Response.ResponseStream = responseStream;
+        grpcContext.CancellationToken = context.CancellationToken;
+
+        var application = new ApplicationBuilder<GrpcContext<ListenForJobRequest, ListenForJobResponse>>(_appServices)
+                .Use<AuthMiddleware<ListenForJobRequest, ListenForJobResponse>>()
+                .Use<ListenForJobMiddleware>()
+                .Build();
+
+        await application.Invoke(grpcContext);
     }
 
     /// <summary>
@@ -135,22 +94,17 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
     /// <returns></returns>
     public async override Task<ListenForResultReponse> ListenForResult(IAsyncStreamReader<ListenForResultRequest> requestStream, ServerCallContext context)
     {
-        try
-        {
-            await foreach (var resp in requestStream.ReadAllAsync())
-            {
-                _dataTransferCenter.WriteResult(new ResultModel()
-                {
-                    JobId = resp.Id,
-                    Result = resp.Result.ToByteArray(),
-                });
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError("结果监听任务失败", ex);
-        }
-        return new ListenForResultReponse();
+        var grpcContext = CreateGrpcContext<ListenForResultRequest, ListenForResultReponse>(context, requestStream.Current, new ListenForResultReponse());
+        grpcContext.Reqeust.RequestStream = requestStream;
+        grpcContext.CancellationToken = context.CancellationToken;
+
+        var application = new ApplicationBuilder<GrpcContext<ListenForResultRequest, ListenForResultReponse>>(_appServices)
+                .Use<AuthMiddleware<ListenForResultRequest, ListenForResultReponse>>()
+                .Use<ListenForResultMiddleware>()
+                .Build();
+
+        await application.Invoke(grpcContext);
+        return grpcContext.Response.Response;
     }
 
     /// <summary>
@@ -161,23 +115,17 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
     /// <returns></returns>
     public override async Task<HeartbeatResponse> Heartbeat(HeartbeatRequest request, ServerCallContext context)
     {
-        try
-        {
-            if (!IsRequestAllowed(context))
-                return await Task.FromResult(new HeartbeatResponse() { IsSuccess = false, ErrorMessage = $"节点未在授权列表，注册失败" });
-            var worker = _nodeManagement.GetNode(request.Id);
-            if (null == worker)
-                throw new NodeNotFoundException();
-            worker.LastHeartbeat = request.CurrentTime.UnixTimestampToDateTime();
-            _nodeManagement.UpdateNode(request.Id, () => worker);
-            _logger.LogInformation($"心跳:{worker.Id}->{worker.LastHeartbeat}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError("心跳失败", ex);
-            return await Task.FromResult(new HeartbeatResponse() { IsSuccess = false, ErrorMessage = ex.ToString() });
-        }
-        return await Task.FromResult(new HeartbeatResponse() { IsSuccess = true });
+        var grpcContext = CreateGrpcContext<HeartbeatRequest, HeartbeatResponse>(context, request, new HeartbeatResponse());
+
+        var application = new ApplicationBuilder<GrpcContext<HeartbeatRequest, HeartbeatResponse>>(_appServices)
+                .Use<AuthMiddleware<HeartbeatRequest, HeartbeatResponse>>()
+                .Use<HeartbeatMiddleware>()
+                .Build();
+
+        await application.Invoke(grpcContext);
+        grpcContext.Response.Response.IsSuccess = true;
+
+        return await Task.FromResult(grpcContext.Response.Response);
     }
 
     /// <summary>
@@ -188,33 +136,37 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
     /// <returns></returns>
     public override async Task<WorkerInfoResponse> WorkerInfo(WorkerInfoRequest request, ServerCallContext context)
     {
-        try
-        {
-            if (!IsRequestAllowed(context))
-                return await Task.FromResult(new WorkerInfoResponse() { IsSuccess = false, ErrorMessage = $"节点未在授权列表，注册失败" });
-            var worker = _nodeManagement.GetNode(request.Id);
-            if (null == worker)
-                throw new NodeNotFoundException();
-            worker.Info.Cpu = request.Cpu;
-            worker.Info.Memory = request.Memory;
-            _nodeManagement.UpdateNode(request.Id, () => worker);
-            _logger.LogInformation($"上报信息:{worker.Id}{Environment.NewLine}{worker.Info.Cpu}{Environment.NewLine}{worker.Info.Memory}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError("节点信息获取失败", ex);
-            return await Task.FromResult(new WorkerInfoResponse() { IsSuccess = false, ErrorMessage = ex.ToString() });
-        }
-        return await Task.FromResult(new WorkerInfoResponse() { IsSuccess = true });
+        var grpcContext = CreateGrpcContext<WorkerInfoRequest, WorkerInfoResponse>(context, request, new WorkerInfoResponse());
+
+        var application = new ApplicationBuilder<GrpcContext<WorkerInfoRequest, WorkerInfoResponse>>(_appServices)
+                .Use<AuthMiddleware<WorkerInfoRequest, WorkerInfoResponse>>()
+                .Use<WorkerInfoMiddleware>()
+                .Build();
+
+        await application.Invoke(grpcContext);
+        grpcContext.Response.Response.IsSuccess = true;
+
+        return await Task.FromResult(grpcContext.Response.Response);
     }
 
     /// <summary>
-    /// 请求授权验证
+    /// 构建请求处理上下文
     /// </summary>
+    /// <typeparam name="TRequest"></typeparam>
+    /// <typeparam name="TResponse"></typeparam>
     /// <param name="context"></param>
+    /// <param name="request"></param>
+    /// <param name="response"></param>
     /// <returns></returns>
-    private bool IsRequestAllowed(ServerCallContext context)
+    private GrpcContext<TRequest, TResponse> CreateGrpcContext<TRequest, TResponse>(ServerCallContext context,TRequest request,TResponse response)
     {
-        return _securityPolicy.IsRequestAllowed(new AppContext() { ClientIp = context.Host });
+        var client = new GrpcClient(context);
+        var grpcRequest = GrpcRequest<TRequest>.Create(request);
+        var grpcResponse = new GrpcResponse<TResponse>(response);
+        var grpcContext = new GrpcContext<TRequest, TResponse>(client, grpcRequest, grpcResponse, context.GetHttpContext().Features)
+        {
+            CancellationToken = context.CancellationToken
+        };
+        return grpcContext;
     }
 }

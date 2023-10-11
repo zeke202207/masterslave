@@ -5,7 +5,7 @@ namespace NetX.Master;
 
 public static class ApplicationBuilderExtensions
 {
-    public static IApplicationBuilder UseMaster(this IApplicationBuilder app , IConfiguration configuration)
+    public static IApplicationBuilder UseMaster(this IApplicationBuilder app, IConfiguration configuration)
     {
         app.UseRouting();
 

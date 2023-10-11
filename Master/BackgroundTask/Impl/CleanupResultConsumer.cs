@@ -25,7 +25,6 @@ public class CleanupResultConsumer : IJob
     {
         try
         {
-            _logger.LogError($"{nameof(CleanupResultConsumer)}");
             foreach (var consumer in _dispatcher.GetConsumers())
             {
                 if (consumer.IsTimeout())

@@ -1,6 +1,5 @@
 ﻿using Hangfire;
 using Hangfire.MemoryStorage;
-using NetX.Master.BackgroundTask;
 using NetX.MemoryQueue;
 
 namespace NetX.Master;
@@ -9,6 +8,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddMaster(this IServiceCollection services)
     {
+        services.AddHttpContextAccessor();
+
         services.AddControllers();
 
         // 注册Hangfire服务
@@ -35,7 +36,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IJobPublisher, JobPublisher>();
         services.AddSingleton<IJobExecutor, JobExecutor>();
         services.AddSingleton<ISecurityPolicy, IpWhitelistSecurityPolicy>();
-        services.AddGrpc();
+        services.AddGrpc(options =>
+        {
+            options.Interceptors.Add<GrpcConnectionInterceptor>();
+        });
         services.AddMemoryQueue(p => p.AsSingleton(), typeof(JobConsumer));
 
         return services;

@@ -14,11 +14,11 @@ public class IpWhitelistSecurityPolicy : ISecurityPolicy
         _ipWhitelist = new HashSet<string>(configuration.GetSection("Master:IpWhitelist").Get<string[]>());
     }
 
-    public bool IsRequestAllowed(AppContext context)
+    public bool IsRequestAllowed(GrpcClient client)
     {
         try
         {
-            return _ipWhitelist.Contains(context.ClientIp);
+            return _ipWhitelist.Contains(client.Host);
         }
         catch (Exception ex)
         {

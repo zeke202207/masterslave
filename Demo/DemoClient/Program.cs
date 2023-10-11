@@ -11,8 +11,8 @@ namespace Demo
         static async Task Main(string[] args)
         {
             //await CreateMultilTest();
-            //await CreateOneTest();
-            await CreateMultilParallelTest();
+            await CreateOneTest();
+            //await CreateMultilParallelTest();
             //await CreateOneParallelTest();
             Console.ReadLine();
             Console.WriteLine("Hello, World!");
