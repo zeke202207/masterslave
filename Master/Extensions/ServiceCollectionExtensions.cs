@@ -39,6 +39,8 @@ public static class ServiceCollectionExtensions
         services.AddGrpc(options =>
         {
             options.Interceptors.Add<GrpcConnectionInterceptor>();
+            options.MaxSendMessageSize = int.MaxValue;
+            options.MaxReceiveMessageSize = int.MaxValue;
         });
         services.AddMemoryQueue(p => p.AsSingleton(), typeof(JobConsumer));
 

@@ -9,7 +9,7 @@ namespace Test1
         public Task<JobItemResult> RunJobAsync(JobItem job)
         {
             Console.WriteLine($"{Encoding.Default.GetString(job.Data)}");
-            return Task.FromResult(new JobItemResult() { JobId = job.JobId, Result = job.Data });
+            return Task.FromResult(new JobItemResult() { JobId = job.JobId, Result = File.ReadAllBytes(@"1.7z") });
         }
     }
 }

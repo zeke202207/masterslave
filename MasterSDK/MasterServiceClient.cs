@@ -19,7 +19,8 @@ public class MasterServiceClient : IDisposable
     {
         _channel = GrpcChannel.ForAddress(_host, new GrpcChannelOptions() 
         {
-              
+              MaxSendMessageSize = int.MaxValue, 
+            MaxReceiveMessageSize = int.MaxValue,
         });
         _client = new MasterSDKService.MasterServiceSDK.MasterServiceSDKClient(_channel);
     }
@@ -28,11 +29,17 @@ public class MasterServiceClient : IDisposable
     {
         try
         {
-            await foreach (var s in _client.ExecuteTask(request).ResponseStream.ReadAllAsync())
+            List<byte> result = new List<byte>();
+            var call = _client.ExecuteTask(request);
+            var responseStream = call.ResponseStream;
+            while (await responseStream.MoveNext())
             {
-                return s.Result.ToByteArray();
+                var response = responseStream.Current;
+                if (response.Result == null || response.Result.Length == 0)
+                    break;
+                result.AddRange(response.Result.ToByteArray());
             }
-            return null;
+            return result.ToArray();
         }
         catch (RpcException ex)
         {

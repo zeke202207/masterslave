@@ -19,7 +19,8 @@ namespace Demo
             //await test.CreateMultilParallelTest();
             //await test.CreateOneParallelTest();
 #else
-            var summary = BenchmarkRunner.Run<MyTest>();
+            //var summary = BenchmarkRunner.Run<MyTest>();
+            var summary = BenchmarkRunner.Run<MergeArraysBenchmark>();
             Console.ReadLine();
 #endif
             Console.WriteLine("Hello, World!");
@@ -31,8 +32,8 @@ namespace Demo
 
     public class MyTest
     {
-        private int _totalCount = 1000;
-        private int _timeout = 60 * 30;
+        private int _totalCount = 1000000;
+        private int _timeout = 60;
 
         [Benchmark]
         public async Task CreateMultilTest()
@@ -51,9 +52,9 @@ namespace Demo
                         Record(() => client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString, Timeout = _timeout }).GetAwaiter().GetResult(), input);
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    throw;
+                    Console.WriteLine(ex);
                 }
             }
 
@@ -78,9 +79,9 @@ namespace Demo
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                Console.WriteLine(ex);
             }
         }
 
@@ -135,15 +136,9 @@ namespace Demo
 
                 sw.Stop();
 
-                var output = Encoding.Default.GetString(result);
-                var isSame = input == output;
-                if (!isSame)
-                {
-                    Console.WriteLine("结果错误");
-                    Console.ReadLine();
-                }
+                var output = result == null ? 0 : result.Length;
 
-                Console.WriteLine($"结果 {sw.Elapsed.TotalMilliseconds} -> {output} 毫秒");
+                Console.WriteLine($"耗时 {sw.Elapsed.TotalMilliseconds} 毫秒 -> 结果长度：{output}");
             }
             catch (Exception ex)
             {

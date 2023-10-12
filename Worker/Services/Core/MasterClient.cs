@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NetX.Common;
 using NetX.WorkerPlugin.Contract;
+using System.Buffers;
 using System.Collections.Concurrent;
 
 namespace NetX.Worker;
@@ -118,7 +119,20 @@ public class MasterClient : IMasterClient, IDisposable
     /// </summary>
     private void InitializeClient()
     {
-        _channel = GrpcChannel.ForAddress(_config.GrpcServer);
+        _channel = GrpcChannel.ForAddress(_config.GrpcServer, new GrpcChannelOptions()
+        {
+            HttpHandler = new SocketsHttpHandler()
+            {
+                //https://learn.microsoft.com/zh-cn/aspnet/core/grpc/performance?view=aspnetcore-7.0#keep-alive-pings
+                PooledConnectionIdleTimeout = Timeout.InfiniteTimeSpan,
+                KeepAlivePingDelay = TimeSpan.FromSeconds(60),
+                KeepAlivePingTimeout = TimeSpan.FromSeconds(30),
+                //https://learn.microsoft.com/zh-cn/aspnet/core/grpc/performance?view=aspnetcore-7.0#connection-concurrency
+                EnableMultipleHttp2Connections = true,
+            },
+            MaxReceiveMessageSize = int.MaxValue,
+            MaxSendMessageSize = int.MaxValue,
+        });
         _client = new MasterWorkerService.MasterNodeService.MasterNodeServiceClient(_channel);
     }
 
@@ -156,22 +170,26 @@ public class MasterClient : IMasterClient, IDisposable
     /// <exception cref="NotImplementedException"></exception>
     private async Task ListenJobsResultsAsync()
     {
-        try
+        foreach (var item in _blockingCollection.GetConsumingEnumerable())
         {
-            var call = _client.ListenForResult();
-            foreach (var item in _blockingCollection.GetConsumingEnumerable())
+            try
             {
-                await call.RequestStream.WriteAsync(new ListenForResultRequest()
+                // 经权衡，每次创建一个连接通道传输数据，免去数据解码过程，同时能支持大文件分段上传
+                var call = _client.ListenForResult();
+                await item.Result.SegmentHandlerAsync(async segment =>
                 {
-                    Id = item.JobId,
-                    Result = ByteString.CopyFrom(item.Result)
+                    await call.RequestStream.WriteAsync(new ListenForResultRequest()
+                    {
+                        Id = item.JobId,
+                        Result = ByteString.CopyFrom(segment.Span)
+                    });
                 });
+                await call.RequestStream.CompleteAsync();
             }
-            await call.RequestStream.CompleteAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError("监听结果失败", ex);
+            catch (Exception ex)
+            {
+                _logger.LogError("监听结果失败", ex);
+            }
         }
     }
 

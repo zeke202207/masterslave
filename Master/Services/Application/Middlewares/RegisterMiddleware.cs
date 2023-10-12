@@ -18,7 +18,7 @@ public class RegisterMiddleware : IApplicationMiddleware<GrpcContext<RegisterNod
         _nodeManagement.NodeRegister(new WorkerNode()
         {
             Id = context.Reqeust.Request.Node.Id,
-            Status = context.Reqeust.Request.Node.IsBusy ? WorkNodeStatus.Busy : WorkNodeStatus.Idle,
+            Status = WorkNodeStatus.Offline,
             LastUsed = context.Reqeust.Request.Node.LastUsed.UnixTimestampToDateTime(),
             LastHeartbeat = context.Reqeust.Request.Node.LastUsed.UnixTimestampToDateTime(),
         });

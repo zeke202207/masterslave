@@ -1,5 +1,6 @@
 ﻿using Google.Protobuf;
 using MasterSDKService;
+using NetX.Common;
 using System.Collections.Concurrent;
 
 namespace NetX.Master;
@@ -75,14 +76,25 @@ public sealed class ResultDispatcher : IResultDispatcher
     {
         foreach (var result in _results.GetConsumingEnumerable())
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 try
                 {
                     if (!_consumers.ContainsKey(result.JobId))
                         return;
                     var consumer = _consumers[result.JobId];
-                    var _ = consumer.StreamWriter.WriteAsync(new ExecuteTaskResponse() { Result = ByteString.CopyFrom(result.Result) }, consumer.CancellationToken);
+                    await result.Result.SegmentHandlerAsync(async segment =>
+                    {
+                        await consumer.StreamWriter.WriteAsync(new ExecuteTaskResponse()
+                        { 
+                            Result = ByteString.CopyFrom(segment.Span) 
+                        }, consumer.CancellationToken);
+                    });
+                    //空消息，通知client已经发送结束 
+                    await consumer.StreamWriter.WriteAsync(new ExecuteTaskResponse()
+                    {
+                        Result = ByteString.CopyFrom(new byte[0])
+                    }, consumer.CancellationToken);
                     consumer.Complete();
                 }
                 catch (Exception ex)
