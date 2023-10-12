@@ -17,7 +17,10 @@ public class MasterServiceClient : IDisposable
 
     private void InitializeClient()
     {
-        _channel = GrpcChannel.ForAddress(_host);
+        _channel = GrpcChannel.ForAddress(_host, new GrpcChannelOptions() 
+        {
+              
+        });
         _client = new MasterSDKService.MasterServiceSDK.MasterServiceSDKClient(_channel);
     }
 
