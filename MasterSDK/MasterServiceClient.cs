@@ -2,6 +2,9 @@
 
 namespace NetX.MasterSDK;
 
+/// <summary>
+/// master sdk 客户端
+/// </summary>
 public class MasterServiceClient : IDisposable
 {
     private readonly string _host;
@@ -25,6 +28,11 @@ public class MasterServiceClient : IDisposable
         _client = new MasterSDKService.MasterServiceSDK.MasterServiceSDKClient(_channel);
     }
 
+    /// <summary>
+    /// 执行任务
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     public async Task<byte[]> ExecuteTaskAsync(ExecuteTaskRequest request)
     {
         try
@@ -41,11 +49,6 @@ public class MasterServiceClient : IDisposable
             }
             return result.ToArray();
         }
-        catch (RpcException ex)
-        {
-            Logger?.Invoke(new Exception($"gRPC error: {ex.Status.Detail}", ex));
-            return default(byte[]);
-        }
         catch (Exception ex)
         {
             Logger?.Invoke(new Exception($"Error: {ex.Message}", ex));
@@ -53,6 +56,9 @@ public class MasterServiceClient : IDisposable
         }
     }
 
+    /// <summary>
+    /// 资源释放
+    /// </summary>
     public void Dispose()
     {
         _channel.ShutdownAsync().Wait(TimeSpan.FromSeconds(60));

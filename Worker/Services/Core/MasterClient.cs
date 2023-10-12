@@ -2,47 +2,53 @@
 using Grpc.Core;
 using Grpc.Net.Client;
 using MasterWorkerService;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NetX.Common;
 using NetX.WorkerPlugin.Contract;
-using System.Buffers;
 using System.Collections.Concurrent;
 
 namespace NetX.Worker;
 
+/// <summary>
+/// 与grpc服务主机通信类
+/// </summary>
 public class MasterClient : IMasterClient, IDisposable
 {
-    private readonly ILogger<MasterClient> _logger;
-    private readonly ConcurrentQueue<JobItem> _queue;
-    private CancellationTokenSource _cancellationTokenSource;
-    private GrpcChannel _channel;
-    private MasterWorkerService.MasterNodeService.MasterNodeServiceClient _client;
-    private WorkerConfig _config;
     private WorkerItem _node;
+    private GrpcChannel _channel;
+    private WorkerConfig _config;
     private readonly RetryPolicy _retryPolicy;
-    private IJobRunner _jobRunner;
+    private readonly ILogger<MasterClient> _logger;
+    private readonly IServiceProvider _serviceProvider;
+    private CancellationTokenSource _cancellationTokenSource;
+    private MasterWorkerService.MasterNodeService.MasterNodeServiceClient _client;
     private readonly BlockingCollection<JobItemResult> _blockingCollection = new BlockingCollection<JobItemResult>();
 
-    public MasterClient(IOptions<WorkerConfig> config, IJobRunner jobRunner, ILogger<MasterClient> logger)
+    /// <summary>
+    /// 通信类实例
+    /// </summary>
+    /// <param name="config"></param>
+    /// <param name="jobRunner"></param>
+    /// <param name="logger"></param>
+    public MasterClient(IOptions<WorkerConfig> config,ILogger<MasterClient> logger, IServiceProvider serviceProvider)
     {
         _logger = logger;
-        _queue = new ConcurrentQueue<JobItem>();
         _cancellationTokenSource = new CancellationTokenSource();
         _config = config.Value;
-        _jobRunner = jobRunner;
         InitializeClient();
         _retryPolicy = new RetryPolicy(maxRetryCount: 5, initialRetryInterval: TimeSpan.FromSeconds(1));
+        _serviceProvider = serviceProvider;
     }
 
     /// <summary>
     /// 启动客户端链接
     /// </summary>
     /// <returns></returns>
-    public async Task Start()
+    public Task Start()
     {
-        await Task.Factory.StartNew(async () => await StartHeartbeatAsync(), TaskCreationOptions.LongRunning);
-        await Task.Factory.StartNew(async () => await StartReportStatusAsync(), TaskCreationOptions.LongRunning);
+        var _ = Task.Run(() => StartHeartbeatAsync());
+        var __ = Task.Run(() => StartReportStatusAsync());
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -56,7 +62,12 @@ public class MasterClient : IMasterClient, IDisposable
         _node = node;
         var request = new RegisterNodeRequest
         {
-            Node = new Node() { Id = node.Id, IsBusy = node.IsBusy, LastUsed = node.LastActiveTime.DateTimeToUnixTimestamp() }
+            Node = new Node()
+            {
+                Id = node.Id,
+                IsBusy = node.IsBusy,
+                LastUsed = node.LastActiveTime.DateTimeToUnixTimestamp()
+            }
         };
         try
         {
@@ -66,8 +77,8 @@ public class MasterClient : IMasterClient, IDisposable
                     var response = await _client.RegisterNodeAsync(request, cancellationToken: _cancellationTokenSource.Token);
                     if (response.IsSuccess)
                     {
-                        await Task.Factory.StartNew(async () => await ListenForJobsAsync(_node.Id), TaskCreationOptions.LongRunning);
-                        var _ = Task.Factory.StartNew(async () => await ListenJobsResultsAsync(), TaskCreationOptions.LongRunning);
+                        var _ = Task.Run(() => ListenForJobsAsync(_node.Id));
+                        var __ = Task.Run(() => ListenJobsResultsAsync());
                     }
                     else
                     {
@@ -115,7 +126,7 @@ public class MasterClient : IMasterClient, IDisposable
     }
 
     /// <summary>
-    /// 初始化
+    /// 初始化grpc客户端
     /// </summary>
     private void InitializeClient()
     {
@@ -148,18 +159,15 @@ public class MasterClient : IMasterClient, IDisposable
         {
             await foreach (var job in call.ResponseStream.ReadAllAsync(_cancellationTokenSource.Token))
             {
-                var result = await _jobRunner.RunJobAsync(new JobItem() { JobId = job.JobId, Data = job.Data.ToByteArray() });
+                var jobRunner = _serviceProvider.GetService<IJobRunner>();
+                var result = await jobRunner.RunJobAsync(new JobItem() { JobId = job.JobId, Data = job.Data.ToByteArray() });
                 _blockingCollection.TryAdd(result);
             }
         }
-        catch (RpcException ex)
+        catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to listen for jobs");
-            if (ex.StatusCode == StatusCode.Unavailable)
-            {
-                InitializeClient();
-                await RegisterNodeAsync(_node);
-            }
+            _logger.LogError(ex, "任务监听失败");
+            await ConnectToServer(_node);
         }
     }
 
@@ -194,6 +202,17 @@ public class MasterClient : IMasterClient, IDisposable
     }
 
     /// <summary>
+    /// 连接到grpc服务器
+    /// </summary>
+    /// <param name="node"></param>
+    /// <returns></returns>
+    private async Task ConnectToServer(WorkerItem node)
+    {
+        InitializeClient();
+        await RegisterNodeAsync(node);
+    }
+
+    /// <summary>
     /// 心跳线程
     /// </summary>
     /// <returns></returns>
@@ -203,18 +222,18 @@ public class MasterClient : IMasterClient, IDisposable
         {
             try
             {
-                var result = await _client.HeartbeatAsync(new HeartbeatRequest() { Id = _config.Id, CurrentTime = DateTime.UtcNow.DateTimeToUnixTimestamp() }, cancellationToken: _cancellationTokenSource.Token);
-                if(!result.IsSuccess)
+                var result = await _client.HeartbeatAsync(new HeartbeatRequest()
                 {
-                    InitializeClient();
-                    await RegisterNodeAsync(_node);
-                }
+                    Id = _config.Id,
+                    CurrentTime = DateTime.UtcNow.DateTimeToUnixTimestamp()
+                }, cancellationToken: _cancellationTokenSource.Token).ConfigureAwait(false);
+                if (!result.IsSuccess)
+                    await ConnectToServer(_node);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Heartbeat failed");
-                InitializeClient();
-                await RegisterNodeAsync(_node);
+                await ConnectToServer(_node);
             }
             await Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
         }
@@ -237,14 +256,9 @@ public class MasterClient : IMasterClient, IDisposable
                 };
                 await _client.WorkerInfoAsync(request, cancellationToken: _cancellationTokenSource.Token);
             }
-            catch (RpcException ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to report status");
-                if (ex.StatusCode == StatusCode.Unavailable)
-                {
-                    InitializeClient();
-                    await RegisterNodeAsync(_node);
-                }
             }
             await Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
         }

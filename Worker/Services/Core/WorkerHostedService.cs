@@ -11,6 +11,12 @@ public class WorkerHostedService : IHostedService
     private readonly WorkerConfig _config;
     private readonly ILogger _logger;
 
+    /// <summary>
+    /// 节点主机服务实例
+    /// </summary>
+    /// <param name="masterClient"></param>
+    /// <param name="config"></param>
+    /// <param name="logger"></param>
     public WorkerHostedService(IMasterClient masterClient, IOptions<WorkerConfig> config, ILogger<WorkerHostedService> logger)
     {
         _masterClient = masterClient;

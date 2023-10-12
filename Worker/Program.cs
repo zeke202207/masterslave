@@ -20,7 +20,6 @@ public class Program
                         options.ListenAnyIP(7561.AddRandomPort(), listenOptions => listenOptions.Protocols = HttpProtocols.Http1);
 
                     });
-                    //webHostBuilder.UseUrls($"http://*".AddRandomPort());
                     webHostBuilder.UseStartup<Startup>();
                 });
         hostBuilder.UseLogging();

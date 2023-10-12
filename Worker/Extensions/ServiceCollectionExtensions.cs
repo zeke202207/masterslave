@@ -22,7 +22,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services">ico服务集合</param>
     /// <returns></returns>
-    public static IServiceCollection AddPlugin(this IServiceCollection services)
+    private static IServiceCollection AddPlugin(this IServiceCollection services)
     {
         var pluginPath = Path.Combine(AppContext.BaseDirectory, "Plugin");
         if (!Directory.Exists(pluginPath))
@@ -52,7 +52,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services"></param>
     /// <param name="assembly"></param>
     /// <returns></returns>
-    public static IServiceCollection AddServicesFromAssembly(this IServiceCollection services, Assembly assembly)
+    private static IServiceCollection AddServicesFromAssembly(this IServiceCollection services, Assembly assembly)
     {
         foreach (var type in assembly.GetTypes())
         {
