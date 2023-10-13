@@ -72,8 +72,48 @@ message HeartbeatResponse {
 message WorkerInfoRequest {
 	string id = 1;
 	int64 currentTime = 2;
-	string cpu = 3;
-	string memory = 4;
+	PlatformInfo platformInfo = 3;
+	CpuInfo cpuInfo = 4;
+	MemoryInfo memoryInfo = 5;
+	repeated DiskInfo diskInfo = 6;
+}
+
+message PlatformInfo{
+	string frameworkDescription = 1;
+	string frameworkVersion = 2;
+	string oSArchitecture = 3;
+	string oSPlatformID = 4;
+	string oSVersion = 5;
+	string oSDescription = 6;
+	string processArchitecture = 7;
+	int32 processorCount = 8;
+	string machineName = 9;
+	string userName = 10;
+	string userDomainName = 11;
+	bool isUserInteractive = 12;
+}
+
+message CpuInfo{
+	double cpuLoad = 1;
+}
+
+message MemoryInfo{
+	uint64 totalPhysicalMemory = 1;
+	uint64 availablePhysicalMemory = 2;
+	uint64 usedPhysicalMemory = 3;
+	uint64 totalVirtualMemory = 4;
+	uint64 availableVirtualMemory = 5;
+	uint64 usedVirtualMemory = 6;
+}
+
+message DiskInfo{
+	string id = 1;
+	string name = 2;
+	string driveType = 3;
+	string fileSystem = 4;
+	int64 freeSpace = 5;
+	int64 totalSize = 6;
+	int64 usedSize = 7;
 }
 
 // The response message for reporting status.

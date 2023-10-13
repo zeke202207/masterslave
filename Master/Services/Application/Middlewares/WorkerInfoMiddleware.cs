@@ -21,8 +21,10 @@ public class WorkerInfoMiddleware : IApplicationMiddleware<GrpcContext<WorkerInf
         var worker = _nodeManagement.GetNode(context.Reqeust.Request.Id);
         if (null == worker)
             throw new NodeNotFoundException();
-        worker.Info.Cpu = context.Reqeust.Request.Cpu;
-        worker.Info.Memory = context.Reqeust.Request.Memory;
+        worker.SystemInfo.Cpu.UpdateCpuInfo(context.Reqeust.Request.CpuInfo);
+        worker.SystemInfo.Memory.UpdateMemoryInfo(context.Reqeust.Request.MemoryInfo);
+        worker.SystemInfo.Disks.UpdateDisksInfo(context.Reqeust.Request.DiskInfo.ToList());
+        worker.SystemInfo.Platform.UpdatelatformInfo(context.Reqeust.Request.PlatformInfo);
         _nodeManagement.UpdateNode(context.Reqeust.Request.Id, () => worker);
         await Task.CompletedTask;
     }

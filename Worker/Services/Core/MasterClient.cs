@@ -23,6 +23,7 @@ public class MasterClient : IMasterClient, IDisposable
     private CancellationTokenSource _cancellationTokenSource;
     private MasterWorkerService.MasterNodeService.MasterNodeServiceClient _client;
     private readonly BlockingCollection<JobItemResult> _blockingCollection = new BlockingCollection<JobItemResult>();
+    private NetX.Common.CPUTime _lastCpuTime;
 
     /// <summary>
     /// 通信类实例
@@ -38,6 +39,7 @@ public class MasterClient : IMasterClient, IDisposable
         InitializeClient();
         _retryPolicy = new RetryPolicy(maxRetryCount: 5, initialRetryInterval: TimeSpan.FromSeconds(1));
         _serviceProvider = serviceProvider;
+        _lastCpuTime = CPUHelper.GetCPUTime();
     }
 
     /// <summary>
@@ -252,8 +254,12 @@ public class MasterClient : IMasterClient, IDisposable
                 var request = new WorkerInfoRequest
                 {
                     Id = _config.Id,
-                    CurrentTime = DateTime.UtcNow.DateTimeToUnixTimestamp()
+                    CurrentTime = DateTime.UtcNow.DateTimeToUnixTimestamp(),
+                    CpuInfo = GetCpuInfo(),
+                    MemoryInfo = GetMemoryInfo(),
+                    PlatformInfo = GetPlatformInfo(),
                 };
+                request.DiskInfo.AddRange(GetDiskInfo());
                 await _client.WorkerInfoAsync(request, cancellationToken: _cancellationTokenSource.Token);
             }
             catch (Exception ex)
@@ -262,6 +268,80 @@ public class MasterClient : IMasterClient, IDisposable
             }
             await Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
         }
+    }
+
+    /// <summary>
+    /// 获取平台信息
+    /// </summary>
+    /// <returns></returns>
+    private MasterWorkerService.PlatformInfo GetPlatformInfo()
+    {
+        return new PlatformInfo()
+        {
+            FrameworkDescription = SystemPlatformInfo.FrameworkDescription,
+            FrameworkVersion = SystemPlatformInfo.FrameworkVersion,
+            IsUserInteractive = SystemPlatformInfo.IsUserInteractive,
+            MachineName = SystemPlatformInfo.MachineName,
+            OSArchitecture = SystemPlatformInfo.OSArchitecture,
+            OSDescription = SystemPlatformInfo.OSDescription,
+            OSPlatformID = SystemPlatformInfo.OSPlatformID,
+            OSVersion = SystemPlatformInfo.OSVersion,
+            ProcessArchitecture = SystemPlatformInfo.ProcessArchitecture,
+            ProcessorCount = SystemPlatformInfo.ProcessorCount,
+            UserDomainName = SystemPlatformInfo.UserDomainName,
+            UserName = SystemPlatformInfo.UserName,
+        };
+    }
+
+    /// <summary>
+    /// 获取cpu信息
+    /// </summary>
+    /// <returns></returns>
+    private MasterWorkerService.CpuInfo GetCpuInfo()
+    {
+        var cpuload = CPUHelper.CalculateCPULoad(_lastCpuTime, _lastCpuTime);
+        _lastCpuTime = CPUHelper.GetCPUTime();
+        return new CpuInfo()
+        {
+            CpuLoad = cpuload
+        };
+    }
+
+    /// <summary>
+    /// 获取内存信息
+    /// </summary>
+    /// <returns></returns>
+    private MasterWorkerService.MemoryInfo GetMemoryInfo()
+    {
+        var memory = MemoryHelper.GetMemoryValue();
+        return new MemoryInfo()
+        {
+            AvailablePhysicalMemory = memory.AvailablePhysicalMemory,
+            AvailableVirtualMemory = memory.AvailableVirtualMemory,
+            TotalPhysicalMemory = memory.TotalPhysicalMemory,
+            TotalVirtualMemory = memory.TotalVirtualMemory,
+            UsedPhysicalMemory = memory.UsedPhysicalMemory,
+            UsedVirtualMemory = memory.UsedVirtualMemory,
+        };
+    }
+
+    /// <summary>
+    /// 获取硬盘信息
+    /// </summary>
+    /// <returns></returns>
+    private List<MasterWorkerService.DiskInfo> GetDiskInfo()
+    {
+        var disks = NetX.Common.DiskInfo.GetDisks();
+        return disks.Select(p => new MasterWorkerService.DiskInfo()
+        {
+            DriveType = p.DriveType.ToString(),
+            FileSystem = p.FileSystem,
+            FreeSpace = p.FreeSpace,
+            Id = p.Id,
+            Name = p.Name,
+            TotalSize = p.TotalSize,
+            UsedSize = p.UsedSize
+        }).ToList();
     }
 
     /// <summary>

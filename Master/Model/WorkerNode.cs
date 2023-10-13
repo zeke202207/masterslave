@@ -33,7 +33,7 @@ public class WorkerNode
     /// <summary>
     /// 工作节点计算机信息
     /// </summary>
-    public WorkerNodeInfo Info { get; set; } = new WorkerNodeInfo();
+    public WorkerNodeInfo SystemInfo { get; set; } = new WorkerNodeInfo();
 
     /// <summary>
     /// 是否超时
