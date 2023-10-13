@@ -33,8 +33,8 @@ public class WorkerHostedService : IHostedService
     {
         try
         {
-            if (await _masterClient.RegisterNodeAsync(new WorkerItem() { Id = _config.Id, IsBusy = false, LastActiveTime = DateTime.UtcNow }))
-                await _masterClient.Start();
+            await _masterClient.RegisterNodeAsync(new WorkerItem() { Id = _config.Id, IsBusy = false, LastActiveTime = DateTime.UtcNow });
+            await _masterClient.Start();
         }
         catch (Exception ex)
         {

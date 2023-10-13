@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo", "Demo\DemoClient\Dem
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetX.WorkerPlugin.Contract", "WorkerPlugin\NetX.WorkerPlugin.Contract.csproj", "{4DFAC4A0-E6E8-4D0C-9A53-084C63C12D7D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test1", "Demo\Test1\Test1.csproj", "{23157167-8AB8-4EC7-A04D-03C5C53AF48A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test1", "Demo\Test1\Test1.csproj", "{23157167-8AB8-4EC7-A04D-03C5C53AF48A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
