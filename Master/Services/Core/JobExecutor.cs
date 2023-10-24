@@ -32,16 +32,7 @@ public class JobExecutor : IJobExecutor
                 throw new NodeNotFoundException();
             node.Status = WorkNodeStatus.Busy;
             _nodeManager.UpdateNode(workerNodeId, () => node);
-            try
-            {
-                _publisher.Publish(new WorkerJob() { WorkerId = node.Id, JobItem = job });
-            }
-            finally
-            {
-                node.LastUsed = DateTime.Now;
-                node.Status = WorkNodeStatus.Idle;
-                _nodeManager.UpdateNode(workerNodeId, () => node);
-            }
+            _publisher.Publish(new WorkerJob() { WorkerId = node.Id, JobItem = job });
         }
         catch (Exception ex)
         {

@@ -191,7 +191,8 @@ public class MasterClient : IMasterClient, IDisposable
                     await call.RequestStream.WriteAsync(new ListenForResultRequest()
                     {
                         Id = item.JobId,
-                        Result = ByteString.CopyFrom(segment.Span)
+                        Result = ByteString.CopyFrom(segment.Span),
+                        WorkerId = _node.Id
                     });
                 });
                 await call.RequestStream.CompleteAsync();

@@ -21,10 +21,13 @@ public class ListenForResultMiddleware : IApplicationMiddleware<GrpcContext<List
     {
         List<ResultModel> list= new List<ResultModel>();
         string jobId = string.Empty;
+        string workerId = string.Empty;
         await foreach (var resp in context.Reqeust.RequestStream.ReadAllAsync())
         {
             if(string.IsNullOrWhiteSpace(jobId))
                 jobId = resp.Id;
+            if(string.IsNullOrWhiteSpace(workerId))
+                workerId = resp.WorkerId;
             list.Add(new ResultModel()
             {
                 JobId = resp.Id,
@@ -37,6 +40,7 @@ public class ListenForResultMiddleware : IApplicationMiddleware<GrpcContext<List
         {
             JobId = jobId,
             Result = resultByte,
+            WorkerId = workerId,
         });
     }
 

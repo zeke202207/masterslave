@@ -16,14 +16,11 @@ public static class ExtentionHelper
 
     public static string AddRandomPort(this string url)
     {
-        Random random = new Random();
-        int port = random.Next(1024, 65535);
-        return url + ":" + port;
+        return url + ":" + Random.Shared.Next(1024, 65535);
     }
 
     public static int AddRandomPort(this int port)
     {
-        Random random = new Random();
-        return random.Next(1024, 65535);
+        return Random.Shared.Next(1024, 65535);
     }
 }

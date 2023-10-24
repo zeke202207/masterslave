@@ -20,16 +20,18 @@ public sealed class ResultDispatcher : IResultDispatcher
     /// </summary>
     private ConcurrentDictionary<string, ResultDispatcherConsumer> _consumers = new();
     private readonly ILogger _logger;
+    private readonly INodeManagement _nodeManager;
 
     /// <summary>
     /// 结果分发器实例对象
     /// </summary>
     /// <param name="logger"></param>
-    public ResultDispatcher(ILogger<ResultDispatcher> logger)
+    public ResultDispatcher(ILogger<ResultDispatcher> logger, INodeManagement nodeManager)
     {
         _logger = logger;
         //开启新的线程，监听任务结果集合
         Task.Factory.StartNew(() => HandlingResultListener());
+        _nodeManager = nodeManager;
     }
 
     /// <summary>
@@ -100,6 +102,14 @@ public sealed class ResultDispatcher : IResultDispatcher
                 catch (Exception ex)
                 {
                     _logger.LogError("获取结果失败", ex);
+                }
+                finally
+                {
+                    //更新node节点状态
+                    var node = _nodeManager.GetNode(result.WorkerId);
+                    node.LastUsed = DateTime.Now;
+                    node.Status = WorkNodeStatus.Idle;
+                    _nodeManager.UpdateNode(result.WorkerId, () => node);
                 }
             });
         }
