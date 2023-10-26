@@ -9,7 +9,8 @@
 
   <ItemGroup>
     <None Remove="Protos\MasterService.proto" />
-    <None Remove="Protos\MasterServiceSDK.proto" />
+    <None Remove="Protos\MonitorSDK.proto" />
+    <None Remove="Protos\ServiceSDK.proto" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,8 +40,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Protobuf Include="Protos\MonitorSDK.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\MasterService.proto" GrpcServices="Server" />
-    <Protobuf Include="Protos\MasterServiceSDK.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\ServiceSDK.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>

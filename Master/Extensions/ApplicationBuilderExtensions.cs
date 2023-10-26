@@ -27,7 +27,8 @@ public static class ApplicationBuilderExtensions
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapGrpcService<MasterService>();
-            endpoints.MapGrpcService<MasterServiceSDK>();
+            endpoints.MapGrpcService<ServiceSDK>();
+            endpoints.MapGrpcService<MonitorSDK>();
         });
 
         app.UseEndpoints(endpoints =>

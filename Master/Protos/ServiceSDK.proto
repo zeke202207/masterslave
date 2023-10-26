@@ -1,6 +1,6 @@
 ﻿syntax = "proto3";
 
-package MasterSDKService;
+package SDK;
 
 service MasterServiceSDK {
   rpc ExecuteTask (ExecuteTaskRequest) returns (stream ExecuteTaskResponse) {}

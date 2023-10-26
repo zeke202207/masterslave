@@ -1,18 +1,18 @@
-﻿using MasterSDKService;
+﻿using SDK;
 
 namespace NetX.MasterSDK;
 
 /// <summary>
 /// master sdk 客户端
 /// </summary>
-public class MasterServiceClient : IDisposable
+public class ServiceClient : IDisposable
 {
     private readonly string _host;
     private GrpcChannel _channel;
-    private MasterSDKService.MasterServiceSDK.MasterServiceSDKClient _client;
+    private SDK.MasterServiceSDK.MasterServiceSDKClient _client;
     public Action<Exception> Logger;
 
-    public MasterServiceClient(string host)
+    public ServiceClient(string host)
     {
         _host = host;
         InitializeClient();
@@ -25,7 +25,7 @@ public class MasterServiceClient : IDisposable
               MaxSendMessageSize = int.MaxValue, 
             MaxReceiveMessageSize = int.MaxValue,
         });
-        _client = new MasterSDKService.MasterServiceSDK.MasterServiceSDKClient(_channel);
+        _client = new SDK.MasterServiceSDK.MasterServiceSDKClient(_channel);
     }
 
     /// <summary>

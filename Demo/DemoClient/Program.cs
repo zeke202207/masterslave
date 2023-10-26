@@ -3,6 +3,7 @@ using BenchmarkDotNet.Running;
 using Google.Protobuf;
 using Grpc.Net.Client.Balancer;
 using NetX.MasterSDK;
+using SDK;
 using System.Diagnostics;
 using System.Text;
 
@@ -38,7 +39,7 @@ namespace Demo
         [Benchmark]
         public async Task CreateMultilTest()
         {
-            var factory = new MasterServiceSDKFactory("http://localhost:5600");
+            var factory = new MasterSDKFactory("http://localhost:5600");
             int i = 0;
             while (i++ < _totalCount)
             {
@@ -49,7 +50,7 @@ namespace Demo
                         byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
                         var input = Guid.NewGuid().ToString();
                         ByteString byteString = ByteString.CopyFrom(Encoding.Default.GetBytes(input));
-                        Record(() => client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString, Timeout = _timeout }).GetAwaiter().GetResult(), input);
+                        Record(() => client.ExecuteTaskAsync(new ExecuteTaskRequest() { Data = byteString, Timeout = _timeout }).GetAwaiter().GetResult(), input);
                     }
                 }
                 catch (Exception ex)
@@ -65,7 +66,7 @@ namespace Demo
         {
             try
             {
-                var factory = new MasterServiceSDKFactory("http://localhost:5600"); using (var client = factory.CreateClient())
+                var factory = new MasterSDKFactory("http://localhost:5600"); using (var client = factory.CreateClient())
                 {
                     int i = 0;
                     while (i++ < _totalCount)
@@ -73,7 +74,7 @@ namespace Demo
                         byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
                         var input = Guid.NewGuid().ToString();
                         ByteString byteString = ByteString.CopyFrom(Encoding.Default.GetBytes(input));
-                        Record(() => client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString, Timeout = _timeout }).GetAwaiter().GetResult(), input);
+                        Record(() => client.ExecuteTaskAsync(new ExecuteTaskRequest() { Data = byteString, Timeout = _timeout }).GetAwaiter().GetResult(), input);
 
                         //Console.ReadLine();
                     }
@@ -93,13 +94,13 @@ namespace Demo
             {
                 Parallel.For(0, 5, i =>
                 {
-                    var factory = new MasterServiceSDKFactory("http://localhost:5600");
+                    var factory = new MasterSDKFactory("http://localhost:5600");
                     using (var client = factory.CreateClient())
                     {
                         byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
                         var input = Guid.NewGuid().ToString();
                         ByteString byteString = ByteString.CopyFrom(Encoding.Default.GetBytes(input));
-                        Record(() => client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString, Timeout = _timeout }).GetAwaiter().GetResult(), input);
+                        Record(() => client.ExecuteTaskAsync(new ExecuteTaskRequest() { Data = byteString, Timeout = _timeout }).GetAwaiter().GetResult(), input);
                     }
                 });
             }
@@ -111,7 +112,7 @@ namespace Demo
             int i = 0;
             while (i++ < _totalCount)
             {
-                var factory = new MasterServiceSDKFactory("http://localhost:5600");
+                var factory = new MasterSDKFactory("http://localhost:5600");
                 Parallel.For(0, 5, i =>
                 {
                     using (var client = factory.CreateClient())
@@ -119,7 +120,7 @@ namespace Demo
                         byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
                         var input = Guid.NewGuid().ToString();
                         ByteString byteString = ByteString.CopyFrom(Encoding.Default.GetBytes(input));
-                        Record(() => client.ExecuteTaskAsync(new MasterSDKService.ExecuteTaskRequest() { Data = byteString, Timeout = _timeout }).GetAwaiter().GetResult(), input);
+                        Record(() => client.ExecuteTaskAsync(new ExecuteTaskRequest() { Data = byteString, Timeout = _timeout }).GetAwaiter().GetResult(), input);
                     }
                 });
             }

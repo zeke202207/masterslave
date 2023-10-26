@@ -1,5 +1,5 @@
 ﻿using Grpc.Core;
-using MasterSDKService;
+using SDK;
 using NetX.MemoryQueue;
 
 namespace NetX.Master;

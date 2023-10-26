@@ -19,6 +19,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetX.WorkerPlugin.Contract"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test1", "Demo\Test1\Test1.csproj", "{23157167-8AB8-4EC7-A04D-03C5C53AF48A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{6E274FD4-6445-484D-A90B-1DE760E8AB6E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetX.Monitor", "Tools\NetX.Monitor\NetX.Monitor.csproj", "{461BEBB4-4386-4BC4-91D7-B2B694E4B139}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +57,10 @@ Global
 		{23157167-8AB8-4EC7-A04D-03C5C53AF48A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23157167-8AB8-4EC7-A04D-03C5C53AF48A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23157167-8AB8-4EC7-A04D-03C5C53AF48A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{461BEBB4-4386-4BC4-91D7-B2B694E4B139}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{461BEBB4-4386-4BC4-91D7-B2B694E4B139}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{461BEBB4-4386-4BC4-91D7-B2B694E4B139}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{461BEBB4-4386-4BC4-91D7-B2B694E4B139}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,6 +68,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{A12DCE27-F14F-4F79-A1D1-001733E24374} = {4A4B4FD3-6712-4B63-84D8-E8F7A1874D6A}
 		{23157167-8AB8-4EC7-A04D-03C5C53AF48A} = {4A4B4FD3-6712-4B63-84D8-E8F7A1874D6A}
+		{461BEBB4-4386-4BC4-91D7-B2B694E4B139} = {6E274FD4-6445-484D-A90B-1DE760E8AB6E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {19B90458-CC43-4569-B059-CF9F58CFB13A}

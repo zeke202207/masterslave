@@ -1,5 +1,5 @@
 ﻿using Google.Protobuf;
-using MasterSDKService;
+using SDK;
 using NetX.Common;
 using System.Collections.Concurrent;
 

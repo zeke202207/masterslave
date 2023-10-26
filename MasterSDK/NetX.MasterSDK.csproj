@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -20,8 +20,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="..\Master\Protos\MasterServiceSDK.proto" GrpcServices="Client">
-      <Link>Protos\MasterServiceSDK.proto</Link>
+    <Protobuf Include="..\Master\Protos\MonitorSDK.proto" GrpcServices="Client">
+      <Link>Protos\MonitorSDK.proto</Link>
+    </Protobuf>
+    <Protobuf Include="..\Master\Protos\ServiceSDK.proto" GrpcServices="Client">
+      <Link>Protos\ServiceSDK.proto</Link>
     </Protobuf>
   </ItemGroup>
 </Project>

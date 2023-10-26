@@ -1,5 +1,5 @@
 ﻿using Grpc.Core;
-using MasterSDKService;
+using SDK;
 using NetX.MemoryQueue;
 using Newtonsoft.Json.Linq;
 
@@ -8,7 +8,7 @@ namespace NetX.Master;
 /// <summary>
 /// grpc服务master提供的SDK
 /// </summary>
-public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceSDKBase
+public class ServiceSDK : SDK.MasterServiceSDK.MasterServiceSDKBase
 {
     private readonly IPublisher _publisher;
     private readonly ILogger _logger;
@@ -20,7 +20,7 @@ public class MasterServiceSDK : MasterSDKService.MasterServiceSDK.MasterServiceS
     /// <param name="publisher"></param>
     /// <param name="logger"></param>
     /// <param name="dataTransferCenter"></param>
-    public MasterServiceSDK(IPublisher publisher, ILogger<MasterServiceSDK> logger, IResultDispatcher dataTransferCenter)
+    public ServiceSDK(IPublisher publisher, ILogger<ServiceSDK> logger, IResultDispatcher dataTransferCenter)
     {
         _publisher = publisher;
         _logger = logger;
