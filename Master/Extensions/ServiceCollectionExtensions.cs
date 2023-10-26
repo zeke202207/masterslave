@@ -1,5 +1,6 @@
 ﻿using Hangfire;
 using Hangfire.MemoryStorage;
+using NetX.Master.Services.Core;
 using NetX.MemoryQueue;
 
 namespace NetX.Master;
@@ -44,6 +45,13 @@ public static class ServiceCollectionExtensions
         });
         services.AddMemoryQueue(p => p.AsSingleton(), typeof(JobConsumer));
 
+        //注入monitor tracker cache
+        services.AddSingleton<IJobTrackerCache<JobTrackerItem>>(provider =>
+        {
+            // 这里可以根据需要传入适当的参数
+            int capacity = 100;
+            return new JobTrackerCache<JobTrackerItem>(capacity);
+        });
         return services;
     }
 }

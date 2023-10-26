@@ -2,6 +2,7 @@
 using SDK;
 using NetX.Common;
 using System.Collections.Concurrent;
+using NetX.Master.Services.Core;
 
 namespace NetX.Master;
 
@@ -21,17 +22,19 @@ public sealed class ResultDispatcher : IResultDispatcher
     private ConcurrentDictionary<string, ResultDispatcherConsumer> _consumers = new();
     private readonly ILogger _logger;
     private readonly INodeManagement _nodeManager;
+    private readonly IJobTrackerCache<JobTrackerItem> _jobTrackerCache;
 
     /// <summary>
     /// 结果分发器实例对象
     /// </summary>
     /// <param name="logger"></param>
-    public ResultDispatcher(ILogger<ResultDispatcher> logger, INodeManagement nodeManager)
+    public ResultDispatcher(ILogger<ResultDispatcher> logger, INodeManagement nodeManager,IJobTrackerCache<JobTrackerItem> jobTrackerCache)
     {
         _logger = logger;
         //开启新的线程，监听任务结果集合
         Task.Factory.StartNew(() => HandlingResultListener());
         _nodeManager = nodeManager;
+        _jobTrackerCache = jobTrackerCache;
     }
 
     /// <summary>
@@ -102,16 +105,40 @@ public sealed class ResultDispatcher : IResultDispatcher
                 catch (Exception ex)
                 {
                     _logger.LogError("获取结果失败", ex);
+                    await _jobTrackerCache.UpdateAsync(result.JobId, p =>
+                    {
+                        p.Status = TrackerStatus.Failure;
+                        p.EndTime = DateTime.Now;
+                        p.Message = ex.Message;
+                        return p;
+                    });
                 }
                 finally
                 {
                     //更新node节点状态
-                    var node = _nodeManager.GetNode(result.WorkerId);
-                    node.LastUsed = DateTime.Now;
-                    node.Status = WorkNodeStatus.Idle;
-                    _nodeManager.UpdateNode(result.WorkerId, () => node);
+                    await UpdateNodeIdle(result.WorkerId);
+                    await _jobTrackerCache.UpdateAsync(result.JobId, p =>
+                    {
+                        p.Status = TrackerStatus.Success;
+                        p.EndTime = DateTime.Now;
+                        return p;
+                    });
                 }
             });
         }
+    }
+
+    /// <summary>
+    /// 更新节点状态
+    /// </summary>
+    /// <param name="nodeId"></param>
+    /// <returns></returns>
+    private async Task UpdateNodeIdle(string nodeId)
+    {
+        var node = _nodeManager.GetNode(nodeId);
+        node.LastUsed = DateTime.Now;
+        node.Status = WorkNodeStatus.Idle;
+        _nodeManager.UpdateNode(nodeId, () => node);
+        await Task.CompletedTask;
     }
 }

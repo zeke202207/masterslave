@@ -4,13 +4,13 @@ public static class ExtentionHelper
 {
     public static long DateTimeToUnixTimestamp(this DateTime dateTime)
     {
-        var unixTime = dateTime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
+        var unixTime = dateTime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
         return (long)unixTime;
     }
 
     public static DateTime UnixTimestampToDateTime(this long unixTimestamp)
     {
-        var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixTimestamp);
+        var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(unixTimestamp);
         return dateTime.ToLocalTime();
     }
 

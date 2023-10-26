@@ -9,7 +9,6 @@ public static class DataTableExtensions
     public static DataTable ToDataTable<T>(this IEnumerable<T> items)
     {
         DataTable dataTable = new DataTable();
-
         PropertyInfo[] properties = typeof(T).GetProperties();
         foreach (PropertyInfo property in properties)
         {
@@ -29,6 +28,8 @@ public static class DataTableExtensions
             column.DataType = property.PropertyType;
             dataTable.Columns.Add(column);
         }
+        if (null == items)
+            return dataTable;
 
         foreach (T item in items)
         {

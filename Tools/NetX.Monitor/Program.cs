@@ -48,7 +48,7 @@ namespace NetX.Monitor
         [SupportedOSPlatform("windows")]
         private static void SetWindowSize()
         {
-            Console.SetWindowSize(130, 40);
+            Console.SetWindowSize(140, 40);
         }
     }
 }

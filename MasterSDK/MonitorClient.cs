@@ -154,8 +154,9 @@ public class MonitorClient : IDisposable
                 NodeId = p.NodeId,
                 NodeName = p.NodeName,
                 Status = p.Status,
-                StartTime = p.StartTime,
-                EndTime = p.EndTime,
+                StartTime = UnixTimestampToDateTime(p.StartTime).ToString("yyy/MM/dd HH:mm:ss ffff"),
+                EndTime = UnixTimestampToDateTime(p.EndTime).ToString("yyy/MM/dd HH:mm:ss ffff"),
+                Duration = $"{p.EndTime - p.StartTime} ms",
                 Message = p.Message
             });
         }
@@ -164,6 +165,12 @@ public class MonitorClient : IDisposable
             Logger?.Invoke(ex);
             return default(IEnumerable<JobTrackerModel>);
         }
+    }
+
+    private DateTime UnixTimestampToDateTime(long unixTimestamp)
+    {
+        var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(unixTimestamp);
+        return dateTime.ToLocalTime();
     }
 
     /// <summary>

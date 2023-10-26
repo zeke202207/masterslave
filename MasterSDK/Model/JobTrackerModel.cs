@@ -32,13 +32,19 @@ public class JobTrackerModel
     ///  任务开始时间
     /// </summary>
     [ColumnName("任务开始时间")]
-    public long StartTime { get; set; }
+    public string StartTime { get; set; }
 
     /// <summary>
     ///  任务结束时间
     /// </summary>
     [ColumnName("任务结束时间")]
-    public long EndTime { get; set; }
+    public string EndTime { get; set; }
+
+    /// <summary>
+    /// 耗时
+    /// </summary>
+    [ColumnName("耗时")]
+    public string Duration { get; set; }
 
     /// <summary>
     ///  任务执行状态
@@ -49,7 +55,6 @@ public class JobTrackerModel
     /// <summary>
     /// 其他信息
     /// </summary>
-    [ColumnName("详情")]
     public string Message { get; set; }
 }
 

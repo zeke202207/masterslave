@@ -1,4 +1,5 @@
 ﻿using NetX.Common;
+using NetX.Master.Services.Core;
 using NetX.MemoryQueue;
 
 namespace NetX.Master;
@@ -15,6 +16,7 @@ public class JobConsumer : IConsumer<JobItemMessage>
     private readonly IJobExecutor _executor;
     private readonly ILogger _logger;
     private readonly RetryPolicy _retryPolicy;
+    private readonly IJobTrackerCache<JobTrackerItem> _jobTrackerCache;
 
     /// <summary>
     /// 任务执行者实例对象
@@ -23,13 +25,19 @@ public class JobConsumer : IConsumer<JobItemMessage>
     /// <param name="publisher"></param>
     /// <param name="jobExecutor"></param>
     /// <param name="logger"></param>
-    public JobConsumer(INodeManagement nodeManager, IPublisher publisher, IJobExecutor jobExecutor, ILogger<JobConsumer> logger)
+    public JobConsumer(
+        INodeManagement nodeManager, 
+        IPublisher publisher, 
+        IJobExecutor jobExecutor, 
+        ILogger<JobConsumer> logger,
+        IJobTrackerCache<JobTrackerItem> jobTrackerCache)
     {
         _nodeManager = nodeManager;
         _publisher = publisher;
         _executor = jobExecutor;
         _logger = logger;
-        _retryPolicy = new RetryPolicy(maxRetryCount: 10, initialRetryInterval: TimeSpan.FromSeconds(1)); ;
+        _retryPolicy = new RetryPolicy(maxRetryCount: 10, initialRetryInterval: TimeSpan.FromSeconds(1)); 
+        _jobTrackerCache = jobTrackerCache;
     }
 
     /// <summary>
@@ -60,11 +68,17 @@ public class JobConsumer : IConsumer<JobItemMessage>
         }
         try
         {
+            await _jobTrackerCache.UpdateAsync(message.Job.jobId, p =>
+            {
+                p.Status = TrackerStatus.Processing;
+                p.NodeId = node.Id;
+                return p;
+            });
             await _executor.ExecuteJobAsync(node.Id, message.Job);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "处理队列job失败");
         }
-    }
+    }    
 }

@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using NetX.Common;
+using NetX.Master.Services.Core;
 using NetX.MemoryQueue;
 using SDK;
 using System;
@@ -17,15 +18,17 @@ public class MonitorSDK : SDK.MasterMonitorSDK.MasterMonitorSDKBase
 {
     private readonly ILogger _logger;
     private readonly INodeManagement _nodeManager;
+    private readonly IJobTrackerCache<JobTrackerItem> _jobTrackerCache;
 
     /// <summary>
     /// SDK实例
     /// </summary>
     /// <param name="logger"></param>
-    public MonitorSDK(ILogger<MonitorSDK> logger, INodeManagement nodeManager)
+    public MonitorSDK(ILogger<MonitorSDK> logger, INodeManagement nodeManager, IJobTrackerCache<JobTrackerItem> jobTrackerCache)
     {
         _logger = logger;
         _nodeManager = nodeManager;
+        _jobTrackerCache = jobTrackerCache;
     }
 
     public override Task<ConnectResponse> Connect(ConnectRequest request, ServerCallContext context)
@@ -142,17 +145,20 @@ public class MonitorSDK : SDK.MasterMonitorSDK.MasterMonitorSDKBase
         JobTrackerResponse response = new JobTrackerResponse();
         try
         {
-            //TODO: 获取缓存
-            response.JobTracker.Add(new JobTracker()
+            var items = await _jobTrackerCache.GetLatestAsync(10);
+            foreach(var item in items)
             {
-                JobId = "01",
-                Status = "ok",
-                NodeId = "01",
-                NodeName = "zeke",
-                StartTime = DateTime.Now.DateTimeToUnixTimestamp(),
-                EndTime = DateTime.Now.DateTimeToUnixTimestamp(),
-                Message = ""
-            });
+                response.JobTracker.Add(new JobTracker()
+                {
+                    JobId = item.JobId,
+                    Status = item.Status.ToString(),
+                    NodeId = item.NodeId,
+                    NodeName = "",
+                    StartTime = item.StartTime.DateTimeToUnixTimestamp(),
+                    EndTime = item.EndTime.DateTimeToUnixTimestamp(),
+                    Message = item.Message??""
+                });
+            }
             response.IsSuccess = true;
         }
         catch (Exception ex)
