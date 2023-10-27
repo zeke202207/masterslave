@@ -13,7 +13,7 @@ public static class ApplicationBuilderExtensions
         app.UseHangfireDashboard("/hangfire", new DashboardOptions
         {
             AppPath = null,
-            DashboardTitle = "Hangfire Dashboard Test",
+            DashboardTitle = "ms jobs",
             Authorization = new[]
             {
                 new HangfireCustomBasicAuthenticationFilter

@@ -25,6 +25,7 @@ public class CleanupWorkerNode : IJob
     {
         try
         {
+            //TODO：在某些情况下，心跳异常，但节点仍然存活，这里简单的设置status可能存在问题，后续需要优化
             foreach (var node in _nodeManagement.GetAllNodes())
             {
                 if (node.IsTimeout())
