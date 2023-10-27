@@ -10,7 +10,7 @@ public class ExceptionMiddleware<TRequest, TReponse> : IApplicationMiddleware<Gr
 {
     private readonly ILogger _logger;
 
-    public ExceptionMiddleware(ILogger<AuthMiddleware<TRequest, TReponse>> logger, ISecurityPolicy securityPolicy)
+    public ExceptionMiddleware(ILogger<ExceptionMiddleware<TRequest, TReponse>> logger, ISecurityPolicy securityPolicy)
     {
         _logger = logger;
     }

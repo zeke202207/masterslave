@@ -20,6 +20,8 @@ public class MyTest : IJobRunner
 
     public Task<JobItemResult> RunJobAsync(JobItem job)
     {
+        //Thread.Sleep(1000 * 60);
+
         IZekeLib lib = new ZekeLib();
         lib.Test(false);
 

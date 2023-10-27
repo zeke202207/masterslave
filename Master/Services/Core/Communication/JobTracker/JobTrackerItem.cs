@@ -46,8 +46,4 @@ public enum TrackerStatus
     /// 处理成功
     /// </summary>
     Success = 3,
-    /// <summary>
-    /// 处理超时
-    /// </summary>
-    Timeout = 4
 }

@@ -34,7 +34,7 @@ namespace Demo
     public class MyTest
     {
         private int _totalCount = 1000000;
-        private int _timeout = 60;
+        private int _timeout = 10;
 
         [Benchmark]
         public async Task CreateMultilTest()

@@ -33,6 +33,7 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
         var grpcContext = CreateGrpcContext<RegisterNodeRequest, RegisterNodeResponse>(context, request, new RegisterNodeResponse());
 
         var application = new ApplicationBuilder<GrpcContext<RegisterNodeRequest, RegisterNodeResponse>>(_appServices)
+                .Use<ExceptionMiddleware<RegisterNodeRequest, RegisterNodeResponse>>()
                 .Use<AuthMiddleware<RegisterNodeRequest, RegisterNodeResponse>>()
                 .Use<RegisterMiddleware>()
                 .Build();
@@ -54,6 +55,7 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
         var grpcContext = CreateGrpcContext<UnregisterNodeRequest, UnregisterNodeResponse>(context, request, new UnregisterNodeResponse());
 
         var application = new ApplicationBuilder<GrpcContext<UnregisterNodeRequest, UnregisterNodeResponse>>(_appServices)
+                .Use<ExceptionMiddleware<UnregisterNodeRequest, UnregisterNodeResponse>>()
                 .Use<AuthMiddleware<UnregisterNodeRequest, UnregisterNodeResponse>>()
                 .Use<UnRegisterMiddleware>()
                 .Build();

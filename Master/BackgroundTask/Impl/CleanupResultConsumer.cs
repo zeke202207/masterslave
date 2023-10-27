@@ -27,8 +27,8 @@ public class CleanupResultConsumer : IJob
         {
             foreach (var consumer in _dispatcher.GetConsumers())
             {
-                if (consumer.IsTimeout())
-                    _dispatcher.ConsumerUnRegister(consumer);
+                if (consumer.IsTimeout() && !consumer.CancellationToken.IsCancellationRequested)
+                    consumer.FailedCompleted(new TimeoutException($"{nameof(CleanupResultConsumer)}任务超时"));
             }
         }
         catch (Exception ex)

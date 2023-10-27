@@ -1,6 +1,7 @@
 ﻿using Grpc.Core;
 using SDK;
 using NetX.MemoryQueue;
+using NetX.Master.Services.Core;
 
 namespace NetX.Master;
 
@@ -10,19 +11,65 @@ namespace NetX.Master;
 public class ResultDispatcherConsumer
 {
     private readonly CancellationTokenSource TokenSource;
+    private readonly IResultDispatcher _resultDispatcher;
+    private readonly IJobTrackerCache<JobTrackerItem> _jobTrackerCache;
 
     /// <summary>
     /// 当前时间 - 创建时间 > 超时时间，即为超时
     /// 系统自动清理改消费者
     /// </summary>
     /// <param name="timeout">超时时间：秒</param>
-    public ResultDispatcherConsumer(int timeout)
+    public ResultDispatcherConsumer(int timeout, IResultDispatcher resultDispatcher, IJobTrackerCache<JobTrackerItem> jobTrackerCache)
     {
         CreatTime = DateTime.Now;
         Timeout = timeout;
         TokenSource = new CancellationTokenSource();
+        TokenSource.Token.Register(async () =>
+        {
+            try
+            {
+                //2.更新结果集
+                if (IsSuccess)
+                {
+                    await _jobTrackerCache.UpdateAsync(JobId, p =>
+                    {
+                        p.Status = TrackerStatus.Success;
+                        p.EndTime = DateTime.Now;
+                        return p;
+                    });
+                }
+                else
+                {
+                    string message = "处理失败";
+                    if (null != Exception)
+                        message = Exception.ToString();
+                    else if (IsTimeout())
+                        message = "超时";
+                    else
+                        message = "未捕获异常，处理失败";
+                    await _jobTrackerCache.UpdateAsync(JobId, p =>
+                    {
+                        p.Status = TrackerStatus.Failure;
+                        p.Message = message;
+                        p.EndTime = DateTime.Now;
+                        return p;
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                //do nothing
+            }
+            finally
+            {
+                //1.取消任务监听注册
+                _resultDispatcher.ConsumerUnRegister(this);
+            }
+        });
         TokenSource.CancelAfter(TimeSpan.FromSeconds(Timeout));
         CancellationToken = TokenSource.Token;
+        _resultDispatcher = resultDispatcher;
+        _jobTrackerCache = jobTrackerCache;
     }
 
     /// <summary>
@@ -42,17 +89,36 @@ public class ResultDispatcherConsumer
 
     public CancellationToken CancellationToken { get; private set; }
 
-    public bool IsComplete { get; private set; } = false;
+    public bool IsSuccess { get; private set; } = false;
+
+    public Exception Exception { get; private set; } = null;
 
     public IServerStreamWriter<ExecuteTaskResponse> StreamWriter { get; set; }
 
-    public void Complete()
+    /// <summary>
+    /// 成功
+    /// </summary>
+    public void SuccessCompleted()
     {
-        IsComplete = true;
-        if (TokenSource.IsCancellationRequested)
-            TokenSource.Cancel();
+        IsSuccess = true;
+        TokenSource.Cancel(false);
     }
 
+    /// <summary>
+    /// 失败
+    /// </summary>
+    /// <param name="ex"></param>
+    public void FailedCompleted(Exception ex)
+    {
+        IsSuccess = false;
+        Exception = ex;
+        TokenSource.Cancel(false);
+    }
+
+    /// <summary>
+    /// 判断是否超时
+    /// </summary>
+    /// <returns></returns>
     public bool IsTimeout()
     {
         return DateTime.Now - this.CreatTime > TimeSpan.FromSeconds(Timeout);

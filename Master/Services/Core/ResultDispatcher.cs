@@ -83,11 +83,11 @@ public sealed class ResultDispatcher : IResultDispatcher
         {
             Task.Run(async () =>
             {
+                if (!_consumers.ContainsKey(result.JobId))
+                    return;
+                var consumer = _consumers[result.JobId];
                 try
                 {
-                    if (!_consumers.ContainsKey(result.JobId))
-                        return;
-                    var consumer = _consumers[result.JobId];
                     await result.Result.SegmentHandlerAsync(async segment =>
                     {
                         await consumer.StreamWriter.WriteAsync(new ExecuteTaskResponse()
@@ -100,29 +100,17 @@ public sealed class ResultDispatcher : IResultDispatcher
                     {
                         Result = ByteString.CopyFrom(new byte[0])
                     }, consumer.CancellationToken);
-                    consumer.Complete();
+                    consumer.SuccessCompleted();
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError("获取结果失败", ex);
-                    await _jobTrackerCache.UpdateAsync(result.JobId, p =>
-                    {
-                        p.Status = TrackerStatus.Failure;
-                        p.EndTime = DateTime.Now;
-                        p.Message = ex.Message;
-                        return p;
-                    });
+                    consumer.FailedCompleted(ex);
                 }
                 finally
                 {
                     //更新node节点状态
                     await UpdateNodeIdle(result.WorkerId);
-                    await _jobTrackerCache.UpdateAsync(result.JobId, p =>
-                    {
-                        p.Status = TrackerStatus.Success;
-                        p.EndTime = DateTime.Now;
-                        return p;
-                    });
                 }
             });
         }
