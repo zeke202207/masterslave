@@ -21,7 +21,7 @@ public interface INodeManagement
     /// 获取可用节点
     /// </summary>
     /// <returns></returns>
-    WorkerNode GetAvailableNode();
+    WorkerNode GetAvailableNode(Dictionary<string, string> metaData);
 
     /// <summary>
     /// 获取指定worker节点

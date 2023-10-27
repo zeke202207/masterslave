@@ -15,9 +15,10 @@ public class LruLoadBalancing : ILoadBalancing
     /// <summary>
     /// 获取可用的worker节点
     /// </summary>
-    /// <param name="nodes"></param>
+    /// <param name="nodes">工作节点</param>
+    /// <param name="metaData">请求元数据</param>
     /// <returns></returns>
-    public WorkerNode GetNode(IEnumerable<WorkerNode> nodes)
+    public WorkerNode GetNode(IEnumerable<WorkerNode> nodes, Dictionary<string, string> metaData)
     {
         try
         {

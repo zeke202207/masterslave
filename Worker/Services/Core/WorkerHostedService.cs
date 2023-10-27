@@ -8,7 +8,7 @@ namespace NetX.Worker;
 public class WorkerHostedService : IHostedService
 {
     private readonly IMasterClient _masterClient;
-    private readonly WorkerConfig _config;
+    private readonly WorkerNode _config;
     private readonly ILogger _logger;
 
     /// <summary>
@@ -17,7 +17,7 @@ public class WorkerHostedService : IHostedService
     /// <param name="masterClient"></param>
     /// <param name="config"></param>
     /// <param name="logger"></param>
-    public WorkerHostedService(IMasterClient masterClient, IOptions<WorkerConfig> config, ILogger<WorkerHostedService> logger)
+    public WorkerHostedService(IMasterClient masterClient, IOptions<WorkerNode> config, ILogger<WorkerHostedService> logger)
     {
         _masterClient = masterClient;
         _config = config.Value;
@@ -33,7 +33,14 @@ public class WorkerHostedService : IHostedService
     {
         try
         {
-            await _masterClient.RegisterNodeAsync(new WorkerItem() { Id = _config.Id, IsBusy = false, LastActiveTime = DateTime.UtcNow });
+            await _masterClient.RegisterNodeAsync(new WorkerItem() 
+            { 
+                Id = _config.Id, 
+                Name = _config.Name,
+                MetaData = _config.MetaData,
+                IsBusy = false,
+                LastActiveTime = DateTime.UtcNow 
+            });
             await _masterClient.Start();
         }
         catch (Exception ex)

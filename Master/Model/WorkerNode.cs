@@ -16,6 +16,16 @@ public class WorkerNode
     public string Id { get; set; }
 
     /// <summary>
+    /// 工作节点名称
+    /// </summary>
+    public string Name { get; set; }
+
+    /// <summary>
+    /// 工作节点元数据
+    /// </summary>
+    public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>();
+
+    /// <summary>
     /// 工作节点状态
     /// </summary>
     public WorkNodeStatus Status { get; set; }

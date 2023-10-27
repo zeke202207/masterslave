@@ -64,12 +64,12 @@ public class NodeManagement : INodeManagement
     /// 获取全部可用的worker节点
     /// </summary>
     /// <returns></returns>
-    public WorkerNode GetAvailableNode()
+    public WorkerNode GetAvailableNode(Dictionary<string, string> metaData)
     {
         _readerWriterLock.EnterReadLock();
         try
         {
-            return loadBalancing.GetNode(nodes.Values);
+            return loadBalancing.GetNode(nodes.Values, metaData);
         }
         finally
         {

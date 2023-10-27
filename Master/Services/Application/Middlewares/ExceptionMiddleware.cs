@@ -15,6 +15,7 @@ public class ExceptionMiddleware<TRequest, TReponse> : IApplicationMiddleware<Gr
         _logger = logger;
     }
 
+
     public async Task InvokeAsync(ApplicationDelegate<GrpcContext<TRequest, TReponse>> next, GrpcContext<TRequest, TReponse> context)
     {
         try

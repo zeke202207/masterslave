@@ -41,7 +41,7 @@ public class ServiceSDK : SDK.MasterServiceSDK.MasterServiceSDKBase
     {
         int timeout = request.Timeout <= 0 ? 60 : request.Timeout;
         //1. Create a job and add it to the queue
-        var jobItem = new JobItem(Guid.NewGuid().ToString("N"), request.Data.ToByteArray());
+        var jobItem = new JobItem(Guid.NewGuid().ToString("N"), request.Data.ToByteArray(), request.Metadata.ToDictionary(kv => kv.Key, kv => kv.Value));
         var consumer = new ResultDispatcherConsumer(timeout)
         {
             JobId = jobItem.jobId,

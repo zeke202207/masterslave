@@ -18,6 +18,8 @@ public class RegisterMiddleware : IApplicationMiddleware<GrpcContext<RegisterNod
         _nodeManagement.NodeRegister(new WorkerNode()
         {
             Id = context.Reqeust.Request.Node.Id,
+            Name = context.Reqeust.Request.Node.Name,
+            MetaData = context.Reqeust.Request.Node.MetaData.ToDictionary(kv => kv.Key, kv => kv.Value),
             Status = WorkNodeStatus.Offline,
             LastUsed = context.Reqeust.Request.Node.LastUsed.UnixTimestampToDateTime(),
             LastHeartbeat = context.Reqeust.Request.Node.LastUsed.UnixTimestampToDateTime(),

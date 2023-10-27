@@ -47,13 +47,12 @@ public class JobConsumer : IConsumer<JobItemMessage>
     /// <returns></returns>
     public async Task Handle(JobItemMessage message)
     {
-        Console.WriteLine(message.Timestamp.ToString());
         //获取下一个可用的工作节点
         WorkerNode node = null;
         await _retryPolicy.ExecuteAsync(
                async () =>
                {
-                   node = _nodeManager.GetAvailableNode();
+                   node = _nodeManager.GetAvailableNode(message.Job.metaData);
                    if (null == node)
                        throw new NodeNotFoundException();
                    await Task.CompletedTask;
@@ -72,6 +71,7 @@ public class JobConsumer : IConsumer<JobItemMessage>
             {
                 p.Status = TrackerStatus.Processing;
                 p.NodeId = node.Id;
+                p.NodeName = node.Name;
                 return p;
             });
             await _executor.ExecuteJobAsync(node.Id, message.Job);

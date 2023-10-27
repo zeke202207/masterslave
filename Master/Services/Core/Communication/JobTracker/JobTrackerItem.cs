@@ -10,6 +10,8 @@ public class JobTrackerItem : CacheItem
 {
     public string NodeId { get; set; }
 
+    public string NodeName { get; set; }
+
     public DateTime StartTime { get; set; } 
 
     public DateTime EndTime { get; set; }

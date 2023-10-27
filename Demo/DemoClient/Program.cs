@@ -50,7 +50,11 @@ namespace Demo
                         byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
                         var input = Guid.NewGuid().ToString();
                         ByteString byteString = ByteString.CopyFrom(Encoding.Default.GetBytes(input));
-                        Record(() => client.ExecuteTaskAsync(new ExecuteTaskRequest() { Data = byteString, Timeout = _timeout }).GetAwaiter().GetResult(), input);
+                        var request = new ExecuteTaskRequest() { Data = byteString, Timeout = _timeout };
+                        request.Metadata.Add("test", "test");
+                        request.Metadata.Add("test1", "test1");
+                        request.Data = ByteString.CopyFrom(Encoding.Default.GetBytes(""));
+                        Record(() => client.ExecuteTaskAsync(request).GetAwaiter().GetResult(), input);
                     }
                 }
                 catch (Exception ex)

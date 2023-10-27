@@ -10,7 +10,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddControllers();
 
-        services.Configure<WorkerConfig>(config.GetSection("WorkerConfig"));
+        services.Configure<WorkerNode>(config.GetSection("WorkerNode"));
         services.AddSingleton<IMasterClient, MasterClient>();
         services.AddHostedService<WorkerHostedService>();
         services.AddPlugin();

@@ -46,7 +46,8 @@ message Node {
   string id = 1;
   bool isBusy = 2;
   int64 lastUsed = 3; // Timestamp in Unix epoch milliseconds
-  // You can add more fields here to represent a node
+  string name = 4;
+  map<string, string> metaData = 5;
 }
 
 // The Job message represents a job

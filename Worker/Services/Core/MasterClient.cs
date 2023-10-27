@@ -16,7 +16,7 @@ public class MasterClient : IMasterClient, IDisposable
 {
     private WorkerItem _node;
     private GrpcChannel _channel;
-    private WorkerConfig _config;
+    private WorkerNode _config;
     private readonly RetryPolicy _retryPolicy;
     private readonly ILogger<MasterClient> _logger;
     private readonly IServiceProvider _serviceProvider;
@@ -31,7 +31,7 @@ public class MasterClient : IMasterClient, IDisposable
     /// <param name="config"></param>
     /// <param name="jobRunner"></param>
     /// <param name="logger"></param>
-    public MasterClient(IOptions<WorkerConfig> config,ILogger<MasterClient> logger, IServiceProvider serviceProvider)
+    public MasterClient(IOptions<WorkerNode> config,ILogger<MasterClient> logger, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _cancellationTokenSource = new CancellationTokenSource();
@@ -67,6 +67,8 @@ public class MasterClient : IMasterClient, IDisposable
             Node = new Node()
             {
                 Id = node.Id,
+                Name = node.Name,
+                MetaData = { node.MetaData },
                 IsBusy = node.IsBusy,
                 LastUsed = node.LastActiveTime.DateTimeToUnixTimestamp()
             }

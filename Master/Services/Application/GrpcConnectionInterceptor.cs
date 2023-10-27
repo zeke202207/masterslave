@@ -19,15 +19,13 @@ public class GrpcConnectionInterceptor : Interceptor
         UnaryServerMethod<TRequest, TResponse> continuation)
     {
         try
-        {            
-            _logger.LogInformation($"------->Before Call -> {context.Method}");
-            var response = continuation(request, context); 
-            _logger.LogInformation($"------->After Call -> {context.Method}");
+        {
+            var response = continuation(request, context);
             return response;
         }
         catch (Exception ex)
         {
-            _logger.LogError("服务器处理异常", ex);
+            _logger.LogError("未捕获中间件异常", ex);
             return null;
         }
     }
