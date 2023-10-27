@@ -35,7 +35,10 @@ public static class ServiceCollectionExtensions
                 ////约定大于配置，所有项点动态库均需要以 XXXX 开头
                 //if (!Path.GetFileNameWithoutExtension(file).StartsWith("XXXX"))
                 //    continue;
-                services.AddServicesFromAssembly(Assembly.Load(File.ReadAllBytes(file)));
+                Assembly assembly = Assembly.Load(File.ReadAllBytes(file));
+                //1. 根据IJobRunner接口，统一注入为Transient
+                //2. 根据TransientAttribute、SingletonAttribute特性，注入为Transient、Singleton（其中要去除IJobRunner，防止用户在IJobRunner标记特性）
+                services.AddServicesFromAssembly(assembly);
             }
             catch (Exception ex)
             {
@@ -56,6 +59,16 @@ public static class ServiceCollectionExtensions
     {
         foreach (var type in assembly.GetTypes())
         {
+            #region == IJobRunner接口注入==
+
+            if(type.GetInterfaces().Contains(typeof(IJobRunner)))
+            {
+                services.AddTransient(typeof(IJobRunner), type);
+                continue;
+            }
+
+            #endregion
+
             #region ==单例注入==
 
             var singletonAttr = (SingletonAttribute)Attribute.GetCustomAttribute(type, typeof(SingletonAttribute));
@@ -115,30 +128,31 @@ public static class ServiceCollectionExtensions
 
             #endregion
 
-            #region ==Scoped注入==
-            var scopedAttr = (ScopedAttribute)Attribute.GetCustomAttribute(type, typeof(ScopedAttribute));
-            if (scopedAttr != null)
-            {
-                //注入自身类型
-                if (scopedAttr.Itself)
-                {
-                    services.AddSingleton(type);
-                    continue;
-                }
+            #region ==Scoped注入== 不支持作用域注入特性
 
-                var interfaces = type.GetInterfaces().Where(m => m != typeof(IDisposable)).ToList();
-                if (interfaces.Any())
-                {
-                    foreach (var i in interfaces)
-                    {
-                        services.AddScoped(i, type);
-                    }
-                }
-                else
-                {
-                    services.AddScoped(type);
-                }
-            }
+            //var scopedAttr = (ScopedAttribute)Attribute.GetCustomAttribute(type, typeof(ScopedAttribute));
+            //if (scopedAttr != null)
+            //{
+            //    //注入自身类型
+            //    if (scopedAttr.Itself)
+            //    {
+            //        services.AddSingleton(type);
+            //        continue;
+            //    }
+
+            //    var interfaces = type.GetInterfaces().Where(m => m != typeof(IDisposable)).ToList();
+            //    if (interfaces.Any())
+            //    {
+            //        foreach (var i in interfaces)
+            //        {
+            //            services.AddScoped(i, type);
+            //        }
+            //    }
+            //    else
+            //    {
+            //        services.AddScoped(type);
+            //    }
+            //}
 
             #endregion
         }

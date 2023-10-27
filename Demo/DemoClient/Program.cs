@@ -53,7 +53,7 @@ namespace Demo
                         var request = new ExecuteTaskRequest() { Data = byteString, Timeout = _timeout };
                         request.Metadata.Add("test", "test");
                         request.Metadata.Add("test1", "test1");
-                        request.Data = ByteString.CopyFrom(Encoding.Default.GetBytes(""));
+                        //request.Data = ByteString.CopyFrom(Encoding.Default.GetBytes(""));
                         Record(() => client.ExecuteTaskAsync(request).GetAwaiter().GetResult(), input);
                     }
                 }

@@ -163,9 +163,11 @@ public class MasterClient : IMasterClient, IDisposable
         {
             await foreach (var job in call.ResponseStream.ReadAllAsync(_cancellationTokenSource.Token))
             {
-                var jobRunner = _serviceProvider.GetService<IJobRunner>();
-                var result = await jobRunner.RunJobAsync(new JobItem() { JobId = job.JobId, Data = job.Data.ToByteArray() });
-                _blockingCollection.TryAdd(result);
+                using (var jobRunner = _serviceProvider.GetService<IJobRunner>())
+                {
+                    var result = await jobRunner.RunJobAsync(new JobItem() { JobId = job.JobId, Data = job.Data.ToByteArray() });
+                    _blockingCollection.TryAdd(result);
+                }
             }
         }
         catch (Exception ex)
