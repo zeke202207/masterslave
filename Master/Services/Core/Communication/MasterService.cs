@@ -79,6 +79,7 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
         grpcContext.CancellationToken = context.CancellationToken;
 
         var application = new ApplicationBuilder<GrpcContext<ListenForJobRequest, ListenForJobResponse>>(_appServices)
+                .Use<ExceptionMiddleware<ListenForJobRequest, ListenForJobResponse>>()
                 .Use<AuthMiddleware<ListenForJobRequest, ListenForJobResponse>>()
                 .Use<ListenForJobMiddleware>()
                 .Build();
@@ -99,6 +100,7 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
         grpcContext.CancellationToken = context.CancellationToken;
 
         var application = new ApplicationBuilder<GrpcContext<ListenForResultRequest, ListenForResultReponse>>(_appServices)
+                .Use<ExceptionMiddleware<ListenForResultRequest, ListenForResultReponse>>()
                 .Use<AuthMiddleware<ListenForResultRequest, ListenForResultReponse>>()
                 .Use<ListenForResultMiddleware>()
                 .Build();
@@ -118,6 +120,7 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
         var grpcContext = CreateGrpcContext<HeartbeatRequest, HeartbeatResponse>(context, request, new HeartbeatResponse());
 
         var application = new ApplicationBuilder<GrpcContext<HeartbeatRequest, HeartbeatResponse>>(_appServices)
+                .Use<ExceptionMiddleware<HeartbeatRequest, HeartbeatResponse>>()
                 .Use<AuthMiddleware<HeartbeatRequest, HeartbeatResponse>>()
                 .Use<HeartbeatMiddleware>()
                 .Build();
@@ -139,6 +142,7 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
         var grpcContext = CreateGrpcContext<WorkerInfoRequest, WorkerInfoResponse>(context, request, new WorkerInfoResponse());
 
         var application = new ApplicationBuilder<GrpcContext<WorkerInfoRequest, WorkerInfoResponse>>(_appServices)
+                .Use<ExceptionMiddleware<WorkerInfoRequest, WorkerInfoResponse>>()
                 .Use<AuthMiddleware<WorkerInfoRequest, WorkerInfoResponse>>()
                 .Use<WorkerInfoMiddleware>()
                 .Build();

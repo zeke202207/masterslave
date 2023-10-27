@@ -18,7 +18,14 @@ internal class TerminalOrchestrator
         Console.OutputEncoding = System.Text.Encoding.Default;
         while (running is not null)
         {
-            await running.Invoke();
+            try
+            {
+                await running.Invoke();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
         Application.Shutdown();
     }
