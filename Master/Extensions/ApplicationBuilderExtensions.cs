@@ -9,6 +9,9 @@ public static class ApplicationBuilderExtensions
     {
         app.UseRouting();
 
+        app.UseAuthentication();
+        app.UseAuthorization();
+
         // 配置Hangfire Dashboard路径和权限控制
         app.UseHangfireDashboard("/hangfire", new DashboardOptions
         {
@@ -18,7 +21,7 @@ public static class ApplicationBuilderExtensions
             {
                 new HangfireCustomBasicAuthenticationFilter
                 {
-                    User = configuration.GetSection("HangfireCredentials:UserName").Value,
+                    User = configuration.GetSection("HangfireCredentials:UserId").Value,
                     Pass = configuration.GetSection("HangfireCredentials:Password").Value
                 }
             }

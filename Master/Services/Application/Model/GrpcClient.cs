@@ -17,6 +17,9 @@ public sealed class GrpcClient
     /// <summary>Address of the remote endpoint in URI format.</summary>
     public string Peer => context.Peer;
 
+    /// <summary>Initial metadata sent by client.</summary>
+    public Metadata RequestHeaders => context.RequestHeaders;
+
     /// <summary>
     /// Grpc客户端
     /// </summary>

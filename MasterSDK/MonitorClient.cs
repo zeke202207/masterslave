@@ -9,13 +9,19 @@ namespace NetX.MasterSDK;
 public class MonitorClient : IDisposable
 {
     private readonly string _host;
+    private readonly string _userName;
+    private readonly string _password;
     private GrpcChannel _channel;
     private SDK.MasterMonitorSDK.MasterMonitorSDKClient _client;
     public Action<Exception> Logger;
+    private string _jwtToken = string.Empty;
 
-    public MonitorClient(string host)
+    internal MonitorClient(string host,string username,string pwd)
     {
+        _userName = username;
+        _password = pwd;
         _host = host;
+        _jwtToken = string.Empty;
         InitializeClient();
     }
 
@@ -33,9 +39,11 @@ public class MonitorClient : IDisposable
     {
         try
         {
-            var result = await _client.ConnectAsync(new SDK.ConnectRequest());
-            if(!result.IsSuccess)
+            var result = await _client.ConnectAsync(new SDK.ConnectRequest() { UserName = _userName, Password = _password });
+            if (!result.IsSuccess)
                 throw new Exception(result.ErrorMessage);
+            else
+                _jwtToken = result.Token;
             return result.IsSuccess;
         }
         catch (Exception ex)
@@ -54,7 +62,7 @@ public class MonitorClient : IDisposable
     {
         try
         {
-            var result = await _client.GetWorkersAsync(new SDK.GetWorkersRequest());
+            var result = await _client.GetWorkersAsync(new SDK.GetWorkersRequest(), GetMetadata());
             if (!result.IsSuccess)
                 throw new Exception(result.ErrorMessage);
             return result.Nodes.Select(p => new WorkerNode()
@@ -80,7 +88,7 @@ public class MonitorClient : IDisposable
     {
         try
         {
-            var result = await _client.GetWorkerInfoAsync(new SDK.WorkerInfoRequest() { Id = nodeId });
+            var result = await _client.GetWorkerInfoAsync(new SDK.WorkerInfoRequest() { Id = nodeId }, GetMetadata());
             if (!result.IsSuccess)
                 throw new Exception(result.ErrorMessage);
             var info = new WorkerNodeInfo();
@@ -145,7 +153,7 @@ public class MonitorClient : IDisposable
     {
         try
         {
-            var result = await _client.GetJobTrackerAsync(new SDK.JobTrackerRequest() { Id = nodeId });
+            var result = await _client.GetJobTrackerAsync(new SDK.JobTrackerRequest() { Id = nodeId }, GetMetadata());
             if (!result.IsSuccess)
                 throw new Exception(result.ErrorMessage);
             return result.JobTracker.Select(p => new JobTrackerModel()
@@ -171,6 +179,17 @@ public class MonitorClient : IDisposable
     {
         var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(unixTimestamp);
         return dateTime.ToLocalTime();
+    }
+
+    /// <summary>
+    /// 获取通信元数据
+    /// </summary>
+    /// <returns></returns>
+    private Metadata GetMetadata()
+    {
+        var headers = new Metadata();
+        headers.Add("Authorization", $"Bearer {_jwtToken}");
+        return headers;
     }
 
     /// <summary>

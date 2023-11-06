@@ -6,6 +6,8 @@ namespace NetX.Monitor
     {
         private MonitorClient _client;
         private bool _isConnected = false;
+        private string _username = "zeke";
+        private string _password = "zeke@123!";
 
         public bool IsConnected => _isConnected;
 
@@ -22,7 +24,7 @@ namespace NetX.Monitor
         {
             try
             {
-                var factory = new MasterSDKFactory($"http://{connectionModel.Ip}:{connectionModel.Port}");
+                var factory = new MasterSDKFactory($"http://{connectionModel.Ip}:{connectionModel.Port}", _username, _password);
                 _client = factory.MasterMonitorClient();
                 return await _client.Connect();
             }

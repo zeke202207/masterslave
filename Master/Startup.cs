@@ -11,7 +11,7 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddMaster();
+        services.AddMaster(_configuration);
     }
 
     public void Configure(IApplicationBuilder app)

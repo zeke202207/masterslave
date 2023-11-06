@@ -1,13 +1,8 @@
 ﻿using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
 using NetX.Common;
 using NetX.Master.Services.Core;
-using NetX.MemoryQueue;
 using SDK;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NetX.Master;
 
@@ -16,157 +11,83 @@ namespace NetX.Master;
 /// </summary>
 public class MonitorSDK : SDK.MasterMonitorSDK.MasterMonitorSDKBase
 {
-    private readonly ILogger _logger;
-    private readonly INodeManagement _nodeManager;
-    private readonly IJobTrackerCache<JobTrackerItem> _jobTrackerCache;
+    private readonly IServiceProvider _appServices;
 
     /// <summary>
     /// SDK实例
     /// </summary>
     /// <param name="logger"></param>
-    public MonitorSDK(ILogger<MonitorSDK> logger, INodeManagement nodeManager, IJobTrackerCache<JobTrackerItem> jobTrackerCache)
+    public MonitorSDK(IServiceProvider appServices)
     {
-        _logger = logger;
-        _nodeManager = nodeManager;
-        _jobTrackerCache = jobTrackerCache;
+        _appServices = appServices;
     }
 
-    public override Task<ConnectResponse> Connect(ConnectRequest request, ServerCallContext context)
+    public override async Task<ConnectResponse> Connect(ConnectRequest request, ServerCallContext context)
     {
-        ConnectResponse response = new ConnectResponse();
-        try
-        {
-            response.IsSuccess = true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, ex.Message);
-            response.IsSuccess = false;
-            response.ErrorMessage = ex.Message;
-        }
-        return Task.FromResult(response);
+        var grpcContext = context.CreateGrpcContext(request, new ConnectResponse());
+
+        var application = new ApplicationBuilder<GrpcContext<ConnectRequest, ConnectResponse>>(_appServices)
+                .Use<ExceptionMiddleware<ConnectRequest, ConnectResponse>>()
+                .Use<ConnectMiddleware>()
+                .Build();
+
+        await application.Invoke(grpcContext);
+
+        return grpcContext.Response.Response;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    [Authorize]
     public override async Task<GetWorkersResponse> GetWorkers(GetWorkersRequest request, ServerCallContext context)
     {
-        GetWorkersResponse response = new GetWorkersResponse();
-        try
-        {
-            var nodes = _nodeManager.GetAllNodes().Select(p =>
-            new Node()
-            {
-                Id = p.Id,
-                Name = p.SystemInfo.Platform.MachineName,
-                Status = p.Status.ToString(),
-                LastUsed = p.LastUsed.DateTimeToUnixTimestamp()
-            });
-            response.Nodes.AddRange(nodes);
-            response.IsSuccess = true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, ex.Message);
-            response.IsSuccess = false;
-            response.ErrorMessage = ex.Message;
-        }
-        return await Task.FromResult(response);
+        var grpcContext = context.CreateGrpcContext(request, new GetWorkersResponse());
+
+        var application = new ApplicationBuilder<GrpcContext<GetWorkersRequest, GetWorkersResponse>>(_appServices)
+                .Use<ExceptionMiddleware<GetWorkersRequest, GetWorkersResponse>>()
+                .Use<AuthSDKMiddleware<GetWorkersRequest, GetWorkersResponse>>()
+                .Use<WorkNodeMiddleware>()
+                .Build();
+
+        await application.Invoke(grpcContext);
+
+        return grpcContext.Response.Response;        
     }
 
-    public override Task<WorkerInfoResponse> GetWorkerInfo(WorkerInfoRequest request, ServerCallContext context)
+    [Authorize]
+    public override async Task<WorkerInfoResponse> GetWorkerInfo(WorkerInfoRequest request, ServerCallContext context)
     {
-        WorkerInfoResponse response = new WorkerInfoResponse();
-        try
-        {
-            var node = _nodeManager.GetNode(request.Id);
-            if (node == null)
-            {
-                response.IsSuccess = false;
-                response.ErrorMessage = $"Node {request.Id} not found";
-                return Task.FromResult(response);
-            }
-            response.PlatformInfo = new SDK.PlatformInfo()
-            {
-                MachineName = node.SystemInfo.Platform.MachineName,
-                FrameworkDescription = node.SystemInfo.Platform.FrameworkDescription,
-                FrameworkVersion = node.SystemInfo.Platform.FrameworkVersion,
-                OSArchitecture = node.SystemInfo.Platform.OSArchitecture,
-                OSDescription = node.SystemInfo.Platform.OSDescription,
-                OSPlatformID = node.SystemInfo.Platform.OSPlatformID,
-                OSVersion = node.SystemInfo.Platform.OSVersion,
-                ProcessArchitecture = node.SystemInfo.Platform.ProcessArchitecture,
-                ProcessorCount = node.SystemInfo.Platform.ProcessorCount,
-                UserName = node.SystemInfo.Platform.UserName,
-                UserDomainName = node.SystemInfo.Platform.UserDomainName,
-                IsUserInteractive = node.SystemInfo.Platform.IsUserInteractive                 
-            };
+        var grpcContext = context.CreateGrpcContext(request, new WorkerInfoResponse());
 
-            response.CpuInfo = new SDK.CpuInfo()
-            {
-               CpuLoad = node.SystemInfo.Cpu.CPULoad
-            };
+        var application = new ApplicationBuilder<GrpcContext<WorkerInfoRequest, WorkerInfoResponse>>(_appServices)
+                .Use<ExceptionMiddleware<WorkerInfoRequest, WorkerInfoResponse>>()
+                .Use<AuthSDKMiddleware<WorkerInfoRequest, WorkerInfoResponse>>()
+                .Use<WorkerNodeInfoMiddleware>()
+                .Build();
 
-            response.MemoryInfo = new SDK.MemoryInfo()
-            {
-                AvailablePhysicalMemory = (ulong)node.SystemInfo.Memory.AvailablePhysicalMemory,
-                AvailableVirtualMemory = (ulong)node.SystemInfo.Memory.AvailableVirtualMemory,
-                TotalPhysicalMemory = (ulong)node.SystemInfo.Memory.TotalPhysicalMemory,
-                TotalVirtualMemory = (ulong)node.SystemInfo.Memory.TotalVirtualMemory,
-                UsedPhysicalMemory = (ulong)node.SystemInfo.Memory.UsedPhysicalMemory,
-                UsedVirtualMemory = (ulong)node.SystemInfo.Memory.UsedVirtualMemory
-            };
+        await application.Invoke(grpcContext);
 
-            node.SystemInfo.Disks.ForEach(p =>
-            {
-                response.DiskInfo.Add(new SDK.DiskInfo()
-                {
-                    DriveType = p.DriveType.ToString(),
-                    TotalSize = (long)p.TotalSize,
-                    UsedSize = (long)p.UsedSize,
-                    FileSystem = p.FileSystem,
-                    FreeSpace = (long)p.FreeSpace,
-                    Id = p.Id,
-                    Name = p.Name,
-                });
-            });
-
-            response.IsSuccess = true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, ex.ToString());
-            response.IsSuccess = false;
-            response.ErrorMessage = ex.Message;
-        }
-        return Task.FromResult(response);
+        return grpcContext.Response.Response;
     }
 
+    [Authorize]
     public override async Task<JobTrackerResponse> GetJobTracker(JobTrackerRequest request, ServerCallContext context)
     {
-        JobTrackerResponse response = new JobTrackerResponse();
-        try
-        {
-            var items = await _jobTrackerCache.GetLatestAsync(10);
-            foreach(var item in items)
-            {
-                response.JobTracker.Add(new JobTracker()
-                {
-                    JobId = item.JobId,
-                    Status = item.Status.ToString(),
-                    NodeId = item.NodeId,
-                    NodeName = "",
-                    StartTime = item.StartTime.DateTimeToUnixTimestamp(),
-                    EndTime = item.EndTime.DateTimeToUnixTimestamp(),
-                    Message = item.Message??""
-                });
-            }
-            response.IsSuccess = true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, ex.Message);
-            response.IsSuccess = false;
-            response.ErrorMessage = ex.Message;
-        }
-        return await Task.FromResult(response);
+        var grpcContext = context.CreateGrpcContext(request, new JobTrackerResponse());
+
+        var application = new ApplicationBuilder<GrpcContext<JobTrackerRequest, JobTrackerResponse>>(_appServices)
+                .Use<ExceptionMiddleware<JobTrackerRequest, JobTrackerResponse>>()
+                .Use<AuthSDKMiddleware<JobTrackerRequest, JobTrackerResponse>>()
+                .Use<JobTrackerMiddleware>()
+                .Build();
+
+        await application.Invoke(grpcContext);
+
+        return grpcContext.Response.Response;
+
     }
 }

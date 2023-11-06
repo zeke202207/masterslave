@@ -4,12 +4,10 @@ namespace NetX.Master;
 
 public class AuthMiddleware<TRequest, TReponse> : IApplicationMiddleware<GrpcContext<TRequest, TReponse>>
 {
-    private readonly ILogger _logger;
     private readonly ISecurityPolicy _securityPolicy;
 
-    public AuthMiddleware(ILogger<AuthMiddleware<TRequest, TReponse>> logger, ISecurityPolicy securityPolicy)
+    public AuthMiddleware(ISecurityPolicy securityPolicy)
     {
-        _logger = logger;
         _securityPolicy = securityPolicy;
     }
 

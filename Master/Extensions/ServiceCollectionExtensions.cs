@@ -1,14 +1,18 @@
 ﻿using Grpc.Net.Compression;
 using Hangfire;
 using Hangfire.MemoryStorage;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 using NetX.Master.Services.Core;
 using NetX.MemoryQueue;
+using System.Text;
 
 namespace NetX.Master;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddMaster(this IServiceCollection services)
+    public static IServiceCollection AddMaster(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddHttpContextAccessor();
 
@@ -37,6 +41,23 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IJobPublisher, JobPublisher>();
         services.AddSingleton<IJobExecutor, JobExecutor>();
         services.AddSingleton<ISecurityPolicy, IpWhitelistSecurityPolicy>();
+        services.AddTransient<IJwtManager, JwtManager>();
+
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = configuration["Jwt:Issuer"],
+                    ValidAudience = configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                };
+            });
+
         services.AddGrpc(options =>
         {
             options.Interceptors.Add<GrpcConnectionInterceptor>();

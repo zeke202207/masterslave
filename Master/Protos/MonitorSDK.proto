@@ -10,11 +10,14 @@ service MasterMonitorSDK {
 }
 
 message ConnectRequest {
+	string userName = 1;
+	string password = 2;
 }
 
 message ConnectResponse {
   bool isSuccess = 1;
   string errorMessage = 2;
+  string Token = 3;
 }
 
 message GetWorkersRequest {
