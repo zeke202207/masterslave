@@ -26,7 +26,7 @@ namespace NetX.Monitor
             {
                 var factory = new MasterSDKFactory($"http://{connectionModel.Ip}:{connectionModel.Port}", _username, _password);
                 _client = factory.MasterMonitorClient();
-                return await _client.Connect();
+                return await Task.FromResult(!string.IsNullOrEmpty(_client.JwtToken));
             }
             catch (Exception ex)
             {

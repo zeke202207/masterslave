@@ -3,6 +3,7 @@ using SDK;
 using NetX.MemoryQueue;
 using Newtonsoft.Json.Linq;
 using NetX.Master.Services.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace NetX.Master;
 
@@ -24,6 +25,20 @@ public class ServiceSDK : SDK.MasterServiceSDK.MasterServiceSDKBase
         _appServices = serviceProvider;
     }
 
+    public override async Task<ServiceLoginResponse> Login(ServiceLoginRequest request, ServerCallContext context)
+    {
+        var grpcContext = context.CreateGrpcContext(request, new ServiceLoginResponse());
+
+        var application = new ApplicationBuilder<GrpcContext<ServiceLoginRequest, ServiceLoginResponse>>(_appServices)
+                .Use<ExceptionMiddleware<ServiceLoginRequest, ServiceLoginResponse>>()
+                .Use<ServiceLoginMiddleware>()
+                .Build();
+
+        await application.Invoke(grpcContext);
+
+        return grpcContext.Response.Response;
+    }
+
     /// <summary>
     /// 开始执行任务
     /// </summary>
@@ -31,6 +46,7 @@ public class ServiceSDK : SDK.MasterServiceSDK.MasterServiceSDKBase
     /// <param name="responseStream"></param>
     /// <param name="context"></param>
     /// <returns></returns>
+    [Authorize]
     public override async Task ExecuteTask(ExecuteTaskRequest request, IServerStreamWriter<ExecuteTaskResponse> responseStream, ServerCallContext context)
     {
         var grpcContext = context.CreateGrpcContext(request, new ExecuteTaskResponse());

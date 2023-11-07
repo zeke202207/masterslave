@@ -22,13 +22,13 @@ public class MonitorSDK : SDK.MasterMonitorSDK.MasterMonitorSDKBase
         _appServices = appServices;
     }
 
-    public override async Task<ConnectResponse> Connect(ConnectRequest request, ServerCallContext context)
+    public override async Task<LoginResponse> Login(LoginRequest request, ServerCallContext context)
     {
-        var grpcContext = context.CreateGrpcContext(request, new ConnectResponse());
+        var grpcContext = context.CreateGrpcContext(request, new LoginResponse());
 
-        var application = new ApplicationBuilder<GrpcContext<ConnectRequest, ConnectResponse>>(_appServices)
-                .Use<ExceptionMiddleware<ConnectRequest, ConnectResponse>>()
-                .Use<ConnectMiddleware>()
+        var application = new ApplicationBuilder<GrpcContext<LoginRequest, LoginResponse>>(_appServices)
+                .Use<ExceptionMiddleware<LoginRequest, LoginResponse>>()
+                .Use<LoginMiddleware>()
                 .Build();
 
         await application.Invoke(grpcContext);

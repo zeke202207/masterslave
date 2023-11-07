@@ -3,7 +3,19 @@
 package SDK;
 
 service MasterServiceSDK {
+  rpc Login (ServiceLoginRequest) returns (ServiceLoginResponse){}
   rpc ExecuteTask (ExecuteTaskRequest) returns (stream ExecuteTaskResponse) {}
+}
+
+message ServiceLoginRequest {
+	string userName = 1;
+	string password = 2;
+}
+
+message ServiceLoginResponse {
+  bool isSuccess = 1;
+  string errorMessage = 2;
+  string Token = 3;
 }
 
 message ExecuteTaskRequest {

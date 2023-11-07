@@ -29,7 +29,7 @@ public class MasterSDKFactory
     /// <returns></returns>
     public ServiceClient CreateClient()
     {
-        return new ServiceClient(_host);
+        return new ServiceClient(_host, _userName, _password);
     }
 
     /// <summary>

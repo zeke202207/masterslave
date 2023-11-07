@@ -5,27 +5,33 @@ namespace NetX.MasterSDK;
 /// <summary>
 /// master sdk 客户端
 /// </summary>
-public class ServiceClient : IDisposable
+public class ServiceClient : BaseClient<SDK.MasterServiceSDK.MasterServiceSDKClient>, IDisposable
 {
-    private readonly string _host;
-    private GrpcChannel _channel;
-    private SDK.MasterServiceSDK.MasterServiceSDKClient _client;
-    public Action<Exception> Logger;
-
-    public ServiceClient(string host)
+    public ServiceClient(string host,string username, string password)
+        : base(host, username, password)
     {
-        _host = host;
-        InitializeClient();
+
     }
 
-    private void InitializeClient()
+    protected override MasterServiceSDK.MasterServiceSDKClient CreateClient(GrpcChannel channel)
     {
-        _channel = GrpcChannel.ForAddress(_host, new GrpcChannelOptions() 
+        return new SDK.MasterServiceSDK.MasterServiceSDKClient(channel);
+    }
+
+    protected override string Login(string userName, string password)
+    {
+        try
         {
-              MaxSendMessageSize = int.MaxValue, 
-            MaxReceiveMessageSize = int.MaxValue,
-        });
-        _client = new SDK.MasterServiceSDK.MasterServiceSDKClient(_channel);
+            var result = _client.Login(new SDK.ServiceLoginRequest() { UserName = userName, Password = password });
+            if (!result.IsSuccess)
+                throw new Exception($"登录失败：{result.ErrorMessage}");
+            return result.Token;
+        }
+        catch (Exception ex)
+        {
+            Logger?.Invoke(ex);
+            return default(string);
+        }
     }
 
     /// <summary>
@@ -38,7 +44,7 @@ public class ServiceClient : IDisposable
         try
         {
             List<byte> result = new List<byte>();
-            var call = _client.ExecuteTask(request);
+            var call = _client.ExecuteTask(request, base.GetMetadata());
             var responseStream = call.ResponseStream;
             while (await responseStream.MoveNext())
             {

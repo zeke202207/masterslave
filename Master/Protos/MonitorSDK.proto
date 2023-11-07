@@ -3,18 +3,18 @@
 package SDK;
 
 service MasterMonitorSDK {
-  rpc Connect (ConnectRequest) returns (ConnectResponse){}
+  rpc Login (LoginRequest) returns (LoginResponse) {}
   rpc GetWorkers (GetWorkersRequest) returns (GetWorkersResponse) {}
   rpc GetWorkerInfo(WorkerInfoRequest) returns (WorkerInfoResponse) {}
   rpc GetJobTracker(JobTrackerRequest) returns (JobTrackerResponse) {}
 }
 
-message ConnectRequest {
+message LoginRequest {
 	string userName = 1;
 	string password = 2;
 }
 
-message ConnectResponse {
+message LoginResponse {
   bool isSuccess = 1;
   string errorMessage = 2;
   string Token = 3;

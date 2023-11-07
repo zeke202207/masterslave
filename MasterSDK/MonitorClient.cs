@@ -6,50 +6,38 @@ using System.Threading.Tasks;
 
 namespace NetX.MasterSDK;
 
-public class MonitorClient : IDisposable
+public class MonitorClient : BaseClient<SDK.MasterMonitorSDK.MasterMonitorSDKClient>, IDisposable
 {
-    private readonly string _host;
-    private readonly string _userName;
-    private readonly string _password;
-    private GrpcChannel _channel;
-    private SDK.MasterMonitorSDK.MasterMonitorSDKClient _client;
-    public Action<Exception> Logger;
-    private string _jwtToken = string.Empty;
-
     internal MonitorClient(string host,string username,string pwd)
+        :base(host, username, pwd)
     {
-        _userName = username;
-        _password = pwd;
-        _host = host;
-        _jwtToken = string.Empty;
-        InitializeClient();
+
     }
 
-    private void InitializeClient()
+    protected override SDK.MasterMonitorSDK.MasterMonitorSDKClient CreateClient(GrpcChannel channel)
     {
-        _channel = GrpcChannel.ForAddress(_host, new GrpcChannelOptions()
-        {
-            MaxSendMessageSize = int.MaxValue,
-            MaxReceiveMessageSize = int.MaxValue,
-        });
-        _client = new SDK.MasterMonitorSDK.MasterMonitorSDKClient(_channel);
+        return new SDK.MasterMonitorSDK.MasterMonitorSDKClient(channel);
     }
 
-    public async Task<bool> Connect()
+    /// <summary>
+    /// 登录连接
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <param name="password"></param>
+    /// <returns></returns>
+    protected override string Login(string userName, string password)
     {
         try
         {
-            var result = await _client.ConnectAsync(new SDK.ConnectRequest() { UserName = _userName, Password = _password });
+            var result = _client.Login(new SDK.LoginRequest() { UserName = userName, Password = password });
             if (!result.IsSuccess)
-                throw new Exception(result.ErrorMessage);
-            else
-                _jwtToken = result.Token;
-            return result.IsSuccess;
+                throw new Exception($"登录失败：{result.ErrorMessage}");
+            return result.Token;
         }
         catch (Exception ex)
         {
             Logger?.Invoke(ex);
-            return default(bool);
+            return default(string);
         }
     }
 
@@ -175,23 +163,6 @@ public class MonitorClient : IDisposable
         }
     }
 
-    private DateTime UnixTimestampToDateTime(long unixTimestamp)
-    {
-        var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(unixTimestamp);
-        return dateTime.ToLocalTime();
-    }
-
-    /// <summary>
-    /// 获取通信元数据
-    /// </summary>
-    /// <returns></returns>
-    private Metadata GetMetadata()
-    {
-        var headers = new Metadata();
-        headers.Add("Authorization", $"Bearer {_jwtToken}");
-        return headers;
-    }
-
     /// <summary>
     /// 资源释放
     /// </summary>
@@ -201,4 +172,5 @@ public class MonitorClient : IDisposable
         _client = null;
         _channel = null;
     }
+
 }

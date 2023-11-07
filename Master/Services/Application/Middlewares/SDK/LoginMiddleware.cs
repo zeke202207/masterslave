@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace NetX.Master;
 
-public class ConnectMiddleware : IApplicationMiddleware<GrpcContext<ConnectRequest, ConnectResponse>>
+public class LoginMiddleware : IApplicationMiddleware<GrpcContext<LoginRequest, LoginResponse>>
 {
     private readonly IJwtManager _jwtManager;
 
-    public ConnectMiddleware(IJwtManager jwtManager)
+    public LoginMiddleware(IJwtManager jwtManager)
     {
         _jwtManager = jwtManager;
     }
 
-    public async Task InvokeAsync(ApplicationDelegate<GrpcContext<ConnectRequest, ConnectResponse>> next, GrpcContext<ConnectRequest, ConnectResponse> context)
+    public async Task InvokeAsync(ApplicationDelegate<GrpcContext<LoginRequest, LoginResponse>> next, GrpcContext<LoginRequest, LoginResponse> context)
     {
         try
         {
