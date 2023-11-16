@@ -29,8 +29,8 @@ public class JobTrackerMiddleware : IApplicationMiddleware<GrpcContext<JobTracke
                 {
                     JobId = item.JobId,
                     Status = item.Status.ToString(),
-                    NodeId = item.NodeId,
-                    NodeName = "",
+                    NodeId = item.NodeId??string.Empty,
+                    NodeName = item.NodeName??string.Empty,
                     StartTime = item.StartTime.DateTimeToUnixTimestamp(),
                     EndTime = item.EndTime.DateTimeToUnixTimestamp(),
                     Message = item.Message ?? ""

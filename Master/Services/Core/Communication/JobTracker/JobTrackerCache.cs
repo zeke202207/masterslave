@@ -78,8 +78,11 @@ public class JobTrackerCache<T> : IJobTrackerCache<T> where T : CacheItem
     public async Task<IEnumerable<T>> GetLatestAsync(int count)
     {
         var queueList = queue.ToList();
+        if(queueList.Count == 0)
+            return Enumerable.Empty<T>();
+        int maxCount = Math.Min(count,queueList.Count);
         //queueList.Reverse();
-        return await Task.FromResult(queueList.ToArray()[..count]);
+        return await Task.FromResult(queueList.ToArray()[..maxCount]);
     }
 
     /// <summary>
