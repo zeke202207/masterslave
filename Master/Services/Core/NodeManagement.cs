@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using Microsoft.IdentityModel.Tokens;
+using System.Collections.Concurrent;
 
 namespace NetX.Master;
 
@@ -9,7 +10,8 @@ public class NodeManagement : INodeManagement
 {
     private readonly ILoadBalancing loadBalancing;
     private readonly ILogger logger;
-    private ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
+    //private static ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim(); 
+    private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
     private ConcurrentDictionary<string, WorkerNode> nodes = new ConcurrentDictionary<string, WorkerNode>();
 
     /// <summary>
@@ -28,18 +30,18 @@ public class NodeManagement : INodeManagement
     /// </summary>
     /// <param name="node"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public void NodeRegister(WorkerNode node)
+    public async Task NodeRegister(WorkerNode node)
     {
         if (node == null)
             throw new ArgumentNullException(nameof(node));
-        _readerWriterLock.EnterWriteLock();
+        await _semaphore.WaitAsync();
         try
         {
             nodes.AddOrUpdate(node.Id, node, (key, oldValue) => node);
         }
         finally
         {
-            _readerWriterLock.ExitWriteLock();
+            _semaphore.Release();
         }
     }
 
@@ -47,16 +49,18 @@ public class NodeManagement : INodeManagement
     /// worker节点取消注册
     /// </summary>
     /// <param name="nodeId"></param>
-    public void NodeUnRegister(string nodeId)
+    public async Task NodeUnRegister(string nodeId)
     {
-        _readerWriterLock.EnterWriteLock();
+        if(string.IsNullOrWhiteSpace(nodeId))
+            throw new ArgumentNullException(nameof(nodeId));
+        await _semaphore.WaitAsync();
         try
         {
             nodes.TryRemove(nodeId, out _);
         }
         finally
         {
-            _readerWriterLock.ExitWriteLock();
+            _semaphore.Release();
         }
     }
 
@@ -64,16 +68,16 @@ public class NodeManagement : INodeManagement
     /// 获取全部可用的worker节点
     /// </summary>
     /// <returns></returns>
-    public WorkerNode GetAvailableNode(Dictionary<string, string> metaData)
+    public async Task<WorkerNode> GetAvailableNode(Dictionary<string, string> metaData)
     {
-        _readerWriterLock.EnterReadLock();
+        await _semaphore.WaitAsync();
         try
         {
             return loadBalancing.GetNode(nodes.Values, metaData);
         }
         finally
         {
-            _readerWriterLock.ExitReadLock();
+            _semaphore.Release();
         }
     }
 
@@ -82,16 +86,16 @@ public class NodeManagement : INodeManagement
     /// </summary>
     /// <param name="nodeId"></param>
     /// <returns></returns>
-    public WorkerNode GetNode(string nodeId)
+    public async Task<WorkerNode> GetNode(string nodeId)
     {
-        _readerWriterLock.EnterReadLock();
+        await _semaphore.WaitAsync();
         try
         {
             return nodes.Values.FirstOrDefault(p => p.Id.Equals(nodeId, StringComparison.OrdinalIgnoreCase));
         }
         finally
         {
-            _readerWriterLock.ExitReadLock();
+            _semaphore.Release();
         }
     }
 
@@ -99,16 +103,16 @@ public class NodeManagement : INodeManagement
     /// 获取全部节点
     /// </summary>
     /// <returns></returns>
-    public List<WorkerNode> GetAllNodes()
+    public async Task<List<WorkerNode>> GetAllNodes()
     {
-        _readerWriterLock.EnterReadLock();
+        await _semaphore.WaitAsync();
         try
         {
             return new List<WorkerNode>(nodes.Values);
         }
         finally
         {
-            _readerWriterLock.ExitReadLock();
+            _semaphore.Release();
         }
     }
 
@@ -117,17 +121,17 @@ public class NodeManagement : INodeManagement
     /// </summary>
     /// <param name="nodeId"></param>
     /// <param name="nodeFunc"></param>
-    public void UpdateNode(string nodeId, Func<WorkerNode> nodeFunc)
+    public async Task UpdateNode(string nodeId, Func<WorkerNode> nodeFunc)
     {
         var node = nodeFunc?.Invoke();
-        _readerWriterLock.EnterReadLock();
+        await _semaphore.WaitAsync();
         try
         {
             nodes.AddOrUpdate(nodeId, node, (key, oldValue) => node);
         }
         finally
         {
-            _readerWriterLock.ExitReadLock();
+            _semaphore.Release();
         }
     }
 }

@@ -21,12 +21,12 @@ public class CleanupWorkerNode : IJob
         _nodeManagement = nodeManagement;
     }
 
-    public Task<bool> RunJob()
+    public async Task<bool> RunJob()
     {
         try
         {
             //TODO：在某些情况下，心跳异常，但节点仍然存活，这里简单的设置status可能存在问题，后续需要优化
-            foreach (var node in _nodeManagement.GetAllNodes())
+            foreach (var node in await _nodeManagement.GetAllNodes())
             {
                 if (node.IsTimeout())
                     node.Status = WorkNodeStatus.Offline;
@@ -40,8 +40,8 @@ public class CleanupWorkerNode : IJob
         catch (Exception ex)
         {
             _logger.LogError(ex,$"{nameof(CleanupWorkerNode)}任务执行失败");
-            return Task.FromResult(false);
+            return false;
         }
-        return Task.FromResult(true);
+        return true;
     }
 }

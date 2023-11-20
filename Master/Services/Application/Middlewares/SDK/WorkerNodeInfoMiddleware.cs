@@ -20,7 +20,7 @@ public class WorkerNodeInfoMiddleware : IApplicationMiddleware<GrpcContext<Worke
     {
         try
         {
-            var node = _nodeManager.GetNode(context.Reqeust.Request.Id);
+            var node = await _nodeManager.GetNode(context.Reqeust.Request.Id);
             if (node == null)
             {
                 context.Response.Response.IsSuccess = false;
@@ -79,6 +79,5 @@ public class WorkerNodeInfoMiddleware : IApplicationMiddleware<GrpcContext<Worke
             context.Response.Response.IsSuccess = false;
             context.Response.Response.ErrorMessage = ex.Message;
         }
-        await Task.CompletedTask;
     }
 }

@@ -9,37 +9,37 @@ public interface INodeManagement
     /// worker节点注册
     /// </summary>
     /// <param name="node"></param>
-    void NodeRegister(WorkerNode node);
+    Task NodeRegister(WorkerNode node);
 
     /// <summary>
     /// worker节点取消注册
     /// </summary>
     /// <param name="nodeId"></param>
-    void NodeUnRegister(string nodeId);
+    Task NodeUnRegister(string nodeId);
 
     /// <summary>
     /// 获取可用节点
     /// </summary>
     /// <returns></returns>
-    WorkerNode GetAvailableNode(Dictionary<string, string> metaData);
+    Task<WorkerNode> GetAvailableNode(Dictionary<string, string> metaData);
 
     /// <summary>
     /// 获取指定worker节点
     /// </summary>
     /// <param name="nodeId"></param>
     /// <returns></returns>
-    WorkerNode GetNode(string nodeId);
+    Task<WorkerNode> GetNode(string nodeId);
 
     /// <summary>
     /// 获取全部worker节点
     /// </summary>
     /// <returns></returns>
-    List<WorkerNode> GetAllNodes();
+    Task<List<WorkerNode>> GetAllNodes();
 
     /// <summary>
     /// 更新指定worker节点属性
     /// </summary>
     /// <param name="nodeId"></param>
     /// <param name="nodeFunc"></param>
-    void UpdateNode(string nodeId, Func<WorkerNode> nodeFunc);
+    Task UpdateNode(string nodeId, Func<WorkerNode> nodeFunc);
 }

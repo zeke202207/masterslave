@@ -15,9 +15,9 @@ namespace Demo
         {
 #if DEBUG
             MyTest test = new MyTest();
-            await test.CreateMultilTest();
+            //await test.CreateMultilTest();
             //await test.CreateOneTest();
-            //await test.CreateMultilParallelTest();
+            await test.CreateMultilParallelTest();
             //await test.CreateOneParallelTest();
 #else
             //var summary = BenchmarkRunner.Run<MyTest>();
@@ -39,7 +39,7 @@ namespace Demo
         [Benchmark]
         public async Task CreateMultilTest()
         {
-            var factory = new MasterSDKFactory("http://localhost:5600", "zeke","123");
+            var factory = new MasterSDKFactory("http://localhost:7600", "zeke", "123");
             int i = 0;
             while (i++ < _totalCount)
             {
@@ -70,7 +70,7 @@ namespace Demo
         {
             try
             {
-                var factory = new MasterSDKFactory("http://localhost:5600", "", ""); using (var client = factory.CreateClient())
+                var factory = new MasterSDKFactory("http://localhost:7600", "zeke", "123"); using (var client = factory.CreateClient())
                 {
                     int i = 0;
                     while (i++ < _totalCount)
@@ -98,7 +98,7 @@ namespace Demo
             {
                 Parallel.For(0, 5, i =>
                 {
-                    var factory = new MasterSDKFactory("http://localhost:5600", "", "");
+                    var factory = new MasterSDKFactory("http://localhost:7600", "zeke", "123");
                     using (var client = factory.CreateClient())
                     {
                         byte[] byteArray = new byte[] { 0x01, 0x02, 0x03 };
@@ -116,7 +116,7 @@ namespace Demo
             int i = 0;
             while (i++ < _totalCount)
             {
-                var factory = new MasterSDKFactory("http://localhost:5600", "", "");
+                var factory = new MasterSDKFactory("http://localhost:7600", "zeke", "123");
                 Parallel.For(0, 5, i =>
                 {
                     using (var client = factory.CreateClient())

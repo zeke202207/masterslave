@@ -33,7 +33,7 @@ public class ListenForJobMiddleware : IApplicationMiddleware<GrpcContext<ListenF
         finally
         {
             _jobPublisher.Unsubscribe(jobObserver);
-            _nodeManagement.NodeUnRegister(context.Reqeust.Request.Id);
+            await _nodeManagement.NodeUnRegister(context.Reqeust.Request.Id);
         }
     }
 }

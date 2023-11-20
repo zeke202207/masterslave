@@ -48,16 +48,7 @@ public class JobConsumer : IConsumer<JobItemMessage>
     public async Task Handle(JobItemMessage message)
     {
         //获取下一个可用的工作节点
-        WorkerNode node = null;
-        await _retryPolicy.ExecuteAsync(
-               async () =>
-               {
-                   node = _nodeManager.GetAvailableNode(message.Job.metaData);
-                   if (null == node)
-                       throw new NodeNotFoundException();
-                   await Task.CompletedTask;
-               },
-               ex => ex is NodeNotFoundException nodeEx);
+        WorkerNode node = await _nodeManager.GetAvailableNode(message.Job.metaData);
         if (node == null)
         {
             //无可用节点，job的message优先级升高并打入优先级队列队首，等待下一次处理

@@ -27,17 +27,16 @@ public class JobExecutor : IJobExecutor
     {
         try
         {
-            var node = _nodeManager.GetNode(workerNodeId);
+            var node = await _nodeManager.GetNode(workerNodeId);
             if (null == node)
                 throw new NodeNotFoundException();
             node.Status = WorkNodeStatus.Busy;
-            _nodeManager.UpdateNode(workerNodeId, () => node);
+            await _nodeManager.UpdateNode(workerNodeId, () => node);
             _publisher.Publish(new WorkerJob() { WorkerId = node.Id, JobItem = job });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "执行任务失败");
         }
-        await Task.CompletedTask;
     }
 }

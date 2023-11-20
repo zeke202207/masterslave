@@ -18,7 +18,6 @@ public class UnRegisterMiddleware : IApplicationMiddleware<GrpcContext<Unregiste
 
     public async Task InvokeAsync(ApplicationDelegate<GrpcContext<UnregisterNodeRequest, UnregisterNodeResponse>> next, GrpcContext<UnregisterNodeRequest, UnregisterNodeResponse> context)
     {
-        _nodeManagement.NodeUnRegister(context.Reqeust.Request.Node.Id);
-        await Task.CompletedTask;
+        await _nodeManagement.NodeUnRegister(context.Reqeust.Request.Node.Id);
     }
 }

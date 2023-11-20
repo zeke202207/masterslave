@@ -21,7 +21,7 @@ public class WorkNodeMiddleware : IApplicationMiddleware<GrpcContext<GetWorkersR
     {
         try
         {
-            var nodes = _nodeManager.GetAllNodes().Select(p =>
+            var nodes = (await _nodeManager.GetAllNodes()).Select(p =>
             new Node()
             {
                 Id = p.Id,
@@ -37,6 +37,5 @@ public class WorkNodeMiddleware : IApplicationMiddleware<GrpcContext<GetWorkersR
             context.Response.Response.IsSuccess = false;
             context.Response.Response.ErrorMessage = ex.Message;
         }
-        await Task.CompletedTask;
     }
 }

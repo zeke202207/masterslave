@@ -19,11 +19,10 @@ public class HeartbeatMiddleware : IApplicationMiddleware<GrpcContext<HeartbeatR
 
     public async Task InvokeAsync(ApplicationDelegate<GrpcContext<HeartbeatRequest, HeartbeatResponse>> next, GrpcContext<HeartbeatRequest, HeartbeatResponse> context)
     {
-        var worker = _nodeManagement.GetNode(context.Reqeust.Request.Id);
+        var worker = await _nodeManagement.GetNode(context.Reqeust.Request.Id);
         if (null == worker)
             throw new NodeNotFoundException();
         worker.LastHeartbeat = context.Reqeust.Request.CurrentTime.UnixTimestampToDateTime();
-        _nodeManagement.UpdateNode(context.Reqeust.Request.Id, () => worker);
-        await Task.CompletedTask;
+        await _nodeManagement.UpdateNode(context.Reqeust.Request.Id, () => worker);
     }
 }

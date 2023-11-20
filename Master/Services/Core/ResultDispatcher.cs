@@ -123,10 +123,9 @@ public sealed class ResultDispatcher : IResultDispatcher
     /// <returns></returns>
     private async Task UpdateNodeIdle(string nodeId)
     {
-        var node = _nodeManager.GetNode(nodeId);
+        var node = await _nodeManager.GetNode(nodeId);
         node.LastUsed = DateTime.Now;
         node.Status = WorkNodeStatus.Idle;
-        _nodeManager.UpdateNode(nodeId, () => node);
-        await Task.CompletedTask;
+        await _nodeManager.UpdateNode(nodeId, () => node);
     }
 }

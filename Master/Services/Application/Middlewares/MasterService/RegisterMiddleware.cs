@@ -5,7 +5,6 @@ namespace NetX.Master;
 
 public class RegisterMiddleware : IApplicationMiddleware<GrpcContext<RegisterNodeRequest, RegisterNodeResponse>>
 {
-
     private readonly INodeManagement _nodeManagement;
 
     public RegisterMiddleware(INodeManagement nodeManagement)
@@ -15,7 +14,7 @@ public class RegisterMiddleware : IApplicationMiddleware<GrpcContext<RegisterNod
 
     public async Task InvokeAsync(ApplicationDelegate<GrpcContext<RegisterNodeRequest, RegisterNodeResponse>> next, GrpcContext<RegisterNodeRequest, RegisterNodeResponse> context)
     {
-        _nodeManagement.NodeRegister(new WorkerNode()
+        await _nodeManagement.NodeRegister(new WorkerNode()
         {
             Id = context.Reqeust.Request.Node.Id,
             Name = context.Reqeust.Request.Node.Name,
@@ -24,6 +23,5 @@ public class RegisterMiddleware : IApplicationMiddleware<GrpcContext<RegisterNod
             LastUsed = context.Reqeust.Request.Node.LastUsed.UnixTimestampToDateTime(),
             LastHeartbeat = context.Reqeust.Request.Node.LastUsed.UnixTimestampToDateTime(),
         });
-        await Task.CompletedTask;
     }
 }
