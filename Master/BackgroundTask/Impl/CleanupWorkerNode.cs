@@ -39,7 +39,7 @@ public class CleanupWorkerNode : IJob
         }
         catch (Exception ex)
         {
-            _logger.LogError($"{nameof(CleanupWorkerNode)}任务执行失败", ex);
+            _logger.LogError(ex,$"{nameof(CleanupWorkerNode)}任务执行失败");
             return Task.FromResult(false);
         }
         return Task.FromResult(true);

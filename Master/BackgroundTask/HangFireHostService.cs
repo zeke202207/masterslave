@@ -40,7 +40,7 @@ public class HangFireHostService : IHostedService
         }
         catch (Exception ex)
         {
-            _logger.LogError("注册job失败", ex);
+            _logger.LogError(ex, "注册job失败");
         }
         await Task.CompletedTask;
     }
@@ -61,7 +61,7 @@ public class HangFireHostService : IHostedService
         }
         catch (Exception ex)
         {
-            _logger.LogError("取消job失败", ex);
+            _logger.LogError(ex,"取消job失败");
         }
         await Task.CompletedTask;
     }

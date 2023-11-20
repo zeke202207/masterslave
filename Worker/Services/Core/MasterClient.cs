@@ -203,7 +203,7 @@ public class MasterClient : IMasterClient, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError("监听结果失败", ex);
+                _logger.LogError(ex, "监听结果失败");
             }
         }
     }

@@ -45,7 +45,7 @@ public class WorkerHostedService : IHostedService
         }
         catch (Exception ex)
         {
-            _logger.LogError("注册节点失败", ex);
+            _logger.LogError(ex, "注册节点失败");
         }
     }
 

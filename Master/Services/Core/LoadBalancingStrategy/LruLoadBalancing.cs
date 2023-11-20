@@ -29,7 +29,7 @@ public class LruLoadBalancing : ILoadBalancing
         }
         catch (Exception ex)
         {
-            _logger.LogError("获取可用工作节点失败", ex);
+            _logger.LogError(ex, "获取可用工作节点失败");
             return null;
         }
     }

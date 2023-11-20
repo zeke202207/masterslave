@@ -48,7 +48,7 @@ public class ExecuteTaskMiddleware : IApplicationMiddleware<GrpcContext<ExecuteT
         }
         catch (Exception ex)
         {
-            _logger.LogError("执行任务失败", ex);
+            _logger.LogError(ex,"执行任务失败");
             consumer.FailedCompleted(ex);
         }
         finally

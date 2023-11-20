@@ -22,7 +22,7 @@ public class IpWhitelistSecurityPolicy : ISecurityPolicy
         }
         catch (Exception ex)
         {
-            _logger.LogError("授权验证失败", ex);
+            _logger.LogError(ex, "授权验证失败");
             return false;
         }
     }

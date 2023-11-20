@@ -25,7 +25,7 @@ public class GrpcConnectionInterceptor : Interceptor
         }
         catch (Exception ex)
         {
-            _logger.LogError("未捕获中间件异常", ex);
+            _logger.LogError(ex,"未捕获中间件异常");
             return null;
         }
     }

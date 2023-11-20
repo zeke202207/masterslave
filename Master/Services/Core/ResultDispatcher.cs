@@ -104,7 +104,7 @@ public sealed class ResultDispatcher : IResultDispatcher
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("获取结果失败", ex);
+                    _logger.LogError(ex, "获取结果失败");
                     consumer.FailedCompleted(ex);
                 }
                 finally
