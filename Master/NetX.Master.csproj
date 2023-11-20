@@ -1,24 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
-
   <ItemGroup>
     <None Remove="Protos\MasterService.proto" />
     <None Remove="Protos\MonitorSDK.proto" />
     <None Remove="Protos\ServiceSDK.proto" />
   </ItemGroup>
-
   <ItemGroup>
     <Content Include="..\Common\logging.json" Link="logging.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.24.2" />
     <PackageReference Include="Grpc.AspNetCore.Server" Version="2.56.0" />
@@ -31,25 +27,21 @@
     <PackageReference Include="Hangfire.Core" Version="1.8.5" />
     <PackageReference Include="Hangfire.Dashboard.Basic.Authentication" Version="5.0.0" />
     <PackageReference Include="Hangfire.MemoryStorage" Version="1.8.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.24" />
     <PackageReference Include="ServiceSelf" Version="1.0.6" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Common\NetX.Common.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Protobuf Include="Protos\MonitorSDK.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\MasterService.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\ServiceSDK.proto" GrpcServices="Server" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
 </Project>

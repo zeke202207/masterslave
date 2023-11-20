@@ -39,7 +39,7 @@ namespace Demo
         [Benchmark]
         public async Task CreateMultilTest()
         {
-            var factory = new MasterSDKFactory("http://localhost:5600","","");
+            var factory = new MasterSDKFactory("http://localhost:5600", "zeke","123");
             int i = 0;
             while (i++ < _totalCount)
             {

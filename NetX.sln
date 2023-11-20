@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33801.468
@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test1", "Demo\Test1\Test1.c
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{6E274FD4-6445-484D-A90B-1DE760E8AB6E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetX.Monitor", "Tools\NetX.Monitor\NetX.Monitor.csproj", "{461BEBB4-4386-4BC4-91D7-B2B694E4B139}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetX.Monitor", "Tools\NetX.Monitor\NetX.Monitor.csproj", "{461BEBB4-4386-4BC4-91D7-B2B694E4B139}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
