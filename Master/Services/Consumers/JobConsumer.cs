@@ -15,7 +15,6 @@ public class JobConsumer : IConsumer<JobItemMessage>
     private readonly IPublisher _publisher;
     private readonly IJobExecutor _executor;
     private readonly ILogger _logger;
-    private readonly RetryPolicy _retryPolicy;
     private readonly IJobTrackerCache<JobTrackerItem> _jobTrackerCache;
 
     /// <summary>
@@ -36,7 +35,6 @@ public class JobConsumer : IConsumer<JobItemMessage>
         _publisher = publisher;
         _executor = jobExecutor;
         _logger = logger;
-        _retryPolicy = new RetryPolicy(maxRetryCount: 10, initialRetryInterval: TimeSpan.FromSeconds(1)); 
         _jobTrackerCache = jobTrackerCache;
     }
 
