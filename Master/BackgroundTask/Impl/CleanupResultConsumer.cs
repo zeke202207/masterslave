@@ -33,7 +33,7 @@ public class CleanupResultConsumer : IJob
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex,$"{nameof(CleanupResultConsumer)}任务执行失败");
+            _logger.LogError(ex, $"{nameof(CleanupResultConsumer)}任务执行失败");
             return Task.FromResult(false);
         }
         return Task.FromResult(true);

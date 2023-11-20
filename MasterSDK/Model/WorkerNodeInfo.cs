@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NetX.MasterSDK;
+﻿namespace NetX.MasterSDK;
 
 /// <summary>
 /// 工作节点计算机信息实体对象
@@ -34,20 +28,20 @@ public class WorkerNodeInfo
 
 public class PlatformInfo
 {
-    [DisplayAtribute("      版本：",0)]
+    [DisplayAtribute("      版本：", 0)]
     public string FrameworkDescription { get; set; }
     public string FrameworkVersion { get; set; }
-    [DisplayAtribute("  系统类型：",2)]
+    [DisplayAtribute("  系统类型：", 2)]
     public string OSArchitecture { get; set; }
     public string OSPlatformID { get; set; }
-    [DisplayAtribute("  系统版本：",3)]
+    [DisplayAtribute("  系统版本：", 3)]
     public string OSVersion { get; set; }
     public string OSDescription { get; set; }
     [DisplayAtribute("   CPU类型：", 4)]
     public string ProcessArchitecture { get; set; }
     [DisplayAtribute("CPU 核心数：", 4)]
     public int ProcessorCount { get; set; }
-    [DisplayAtribute("  设备名称：",1)]
+    [DisplayAtribute("  设备名称：", 1)]
     public string MachineName { get; set; }
     public string UserName { get; set; }
     public string UserDomainName { get; set; }

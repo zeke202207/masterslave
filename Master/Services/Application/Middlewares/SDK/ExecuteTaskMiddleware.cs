@@ -15,9 +15,9 @@ public class ExecuteTaskMiddleware : IApplicationMiddleware<GrpcContext<ExecuteT
     private readonly IJobTrackerCache<JobTrackerItem> _jobTrackerCache;
 
     public ExecuteTaskMiddleware(
-        IPublisher publisher, 
-        ILogger<ExecuteTaskMiddleware> logger, 
-        IResultDispatcher resultDispatcher, 
+        IPublisher publisher,
+        ILogger<ExecuteTaskMiddleware> logger,
+        IResultDispatcher resultDispatcher,
         IJobTrackerCache<JobTrackerItem> jobTrackerCache)
     {
         _publisher = publisher;
@@ -48,7 +48,7 @@ public class ExecuteTaskMiddleware : IApplicationMiddleware<GrpcContext<ExecuteT
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex,"执行任务失败");
+            _logger.LogError(ex, "执行任务失败");
             consumer.FailedCompleted(ex);
         }
         finally

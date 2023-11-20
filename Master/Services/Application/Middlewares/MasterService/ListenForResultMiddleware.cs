@@ -1,10 +1,5 @@
 ﻿using Grpc.Core;
 using MasterWorkerService;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NetX.Master;
 
@@ -13,20 +8,20 @@ public class ListenForResultMiddleware : IApplicationMiddleware<GrpcContext<List
     private readonly IResultDispatcher _resultDispatcher;
 
     public ListenForResultMiddleware(IResultDispatcher dataTransferCenter)
-    { 
+    {
         _resultDispatcher = dataTransferCenter;
     }
 
     public async Task InvokeAsync(ApplicationDelegate<GrpcContext<ListenForResultRequest, ListenForResultReponse>> next, GrpcContext<ListenForResultRequest, ListenForResultReponse> context)
     {
-        List<ResultModel> list= new List<ResultModel>();
+        List<ResultModel> list = new List<ResultModel>();
         string jobId = string.Empty;
         string workerId = string.Empty;
         await foreach (var resp in context.Reqeust.RequestStream.ReadAllAsync())
         {
-            if(string.IsNullOrWhiteSpace(jobId))
+            if (string.IsNullOrWhiteSpace(jobId))
                 jobId = resp.Id;
-            if(string.IsNullOrWhiteSpace(workerId))
+            if (string.IsNullOrWhiteSpace(workerId))
                 workerId = resp.WorkerId;
             list.Add(new ResultModel()
             {

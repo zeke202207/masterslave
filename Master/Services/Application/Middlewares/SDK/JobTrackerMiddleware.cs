@@ -1,11 +1,6 @@
 ﻿using NetX.Common;
 using NetX.Master.Services.Core;
 using SDK;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NetX.Master;
 
@@ -29,8 +24,8 @@ public class JobTrackerMiddleware : IApplicationMiddleware<GrpcContext<JobTracke
                 {
                     JobId = item.JobId,
                     Status = item.Status.ToString(),
-                    NodeId = item.NodeId??string.Empty,
-                    NodeName = item.NodeName??string.Empty,
+                    NodeId = item.NodeId ?? string.Empty,
+                    NodeName = item.NodeName ?? string.Empty,
                     StartTime = item.StartTime.DateTimeToUnixTimestamp(),
                     EndTime = item.EndTime.DateTimeToUnixTimestamp(),
                     Message = item.Message ?? ""

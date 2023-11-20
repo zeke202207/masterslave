@@ -1,8 +1,6 @@
-﻿using Grpc.Net.Compression;
-using Hangfire;
+﻿using Hangfire;
 using Hangfire.MemoryStorage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using NetX.Master.Services.Core;
 using NetX.MemoryQueue;

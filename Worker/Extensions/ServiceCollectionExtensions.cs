@@ -61,7 +61,7 @@ public static class ServiceCollectionExtensions
         {
             #region == IJobRunner接口注入==
 
-            if(type.GetInterfaces().Contains(typeof(IJobRunner)))
+            if (type.GetInterfaces().Contains(typeof(IJobRunner)))
             {
                 services.AddTransient(typeof(IJobRunner), type);
                 continue;

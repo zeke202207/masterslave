@@ -1,6 +1,5 @@
 ﻿using Grpc.Core;
 using Grpc.Core.Interceptors;
-using Microsoft.AspNetCore.Http;
 
 namespace NetX.Master;
 
@@ -25,7 +24,7 @@ public class GrpcConnectionInterceptor : Interceptor
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex,"未捕获中间件异常");
+            _logger.LogError(ex, "未捕获中间件异常");
             return null;
         }
     }

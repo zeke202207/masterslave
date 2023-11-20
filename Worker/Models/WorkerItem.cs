@@ -6,7 +6,7 @@ public class WorkerItem
 
     public string Name { get; set; }
 
-    public Dictionary<string,string> MetaData { get; set; } = new Dictionary<string,string>();
+    public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>();
 
     public bool IsBusy { get; set; }
 

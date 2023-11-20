@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NetX.MasterSDK;
+﻿namespace NetX.MasterSDK;
 
 public class MonitorClient : BaseClient<SDK.MasterMonitorSDK.MasterMonitorSDKClient>, IDisposable
 {
-    internal MonitorClient(string host,string username,string pwd)
-        :base(host, username, pwd)
+    internal MonitorClient(string host, string username, string pwd)
+        : base(host, username, pwd)
     {
 
     }
@@ -65,7 +59,7 @@ public class MonitorClient : BaseClient<SDK.MasterMonitorSDK.MasterMonitorSDKCli
         {
             Logger?.Invoke(ex);
             return default(IEnumerable<WorkerNode>);
-        }       
+        }
     }
 
     /// <summary>
@@ -80,7 +74,7 @@ public class MonitorClient : BaseClient<SDK.MasterMonitorSDK.MasterMonitorSDKCli
             if (!result.IsSuccess)
                 throw new Exception(result.ErrorMessage);
             var info = new WorkerNodeInfo();
-            
+
             info.Platform = new PlatformInfo()
             {
                 FrameworkDescription = result.PlatformInfo.FrameworkDescription,
@@ -102,7 +96,7 @@ public class MonitorClient : BaseClient<SDK.MasterMonitorSDK.MasterMonitorSDKCli
                 CPULoad = result.CpuInfo.CpuLoad
             };
 
-            info.Memory= new MemoryInfo()
+            info.Memory = new MemoryInfo()
             {
                 TotalPhysicalMemory = result.MemoryInfo.TotalPhysicalMemory,
                 AvailablePhysicalMemory = result.MemoryInfo.AvailablePhysicalMemory,

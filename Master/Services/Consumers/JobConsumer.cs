@@ -1,5 +1,4 @@
-﻿using NetX.Common;
-using NetX.Master.Services.Core;
+﻿using NetX.Master.Services.Core;
 using NetX.MemoryQueue;
 
 namespace NetX.Master;
@@ -25,9 +24,9 @@ public class JobConsumer : IConsumer<JobItemMessage>
     /// <param name="jobExecutor"></param>
     /// <param name="logger"></param>
     public JobConsumer(
-        INodeManagement nodeManager, 
-        IPublisher publisher, 
-        IJobExecutor jobExecutor, 
+        INodeManagement nodeManager,
+        IPublisher publisher,
+        IJobExecutor jobExecutor,
         ILogger<JobConsumer> logger,
         IJobTrackerCache<JobTrackerItem> jobTrackerCache)
     {
@@ -69,5 +68,5 @@ public class JobConsumer : IConsumer<JobItemMessage>
         {
             _logger.LogError(e, "处理队列job失败");
         }
-    }    
+    }
 }

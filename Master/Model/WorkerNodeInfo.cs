@@ -1,7 +1,4 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
-
-namespace NetX.Master;
+﻿namespace NetX.Master;
 
 /// <summary>
 /// 工作节点计算机信息实体对象
@@ -31,23 +28,23 @@ public class WorkerNodeInfo
 
 public class PlatformInfo
 {
-	public string FrameworkDescription { get; set; }
-	public string FrameworkVersion { get; set; }
-	public string OSArchitecture { get; set; }
-	public string OSPlatformID { get; set; }
-	public string OSVersion { get; set; }
-	public string OSDescription { get; set; }
-	public string ProcessArchitecture { get; set; }
-	public int ProcessorCount { get; set; }
-	public string MachineName { get; set; }
-	public string UserName { get; set; }
-	public string UserDomainName { get; set; }
-	public bool IsUserInteractive { get; set; }
+    public string FrameworkDescription { get; set; }
+    public string FrameworkVersion { get; set; }
+    public string OSArchitecture { get; set; }
+    public string OSPlatformID { get; set; }
+    public string OSVersion { get; set; }
+    public string OSDescription { get; set; }
+    public string ProcessArchitecture { get; set; }
+    public int ProcessorCount { get; set; }
+    public string MachineName { get; set; }
+    public string UserName { get; set; }
+    public string UserDomainName { get; set; }
+    public bool IsUserInteractive { get; set; }
 }
 
 public class CpuInfo
 {
-	public double CPULoad { get; set; }
+    public double CPULoad { get; set; }
 }
 
 public class MemoryInfo

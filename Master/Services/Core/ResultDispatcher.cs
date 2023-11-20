@@ -1,8 +1,8 @@
 ﻿using Google.Protobuf;
-using SDK;
 using NetX.Common;
-using System.Collections.Concurrent;
 using NetX.Master.Services.Core;
+using SDK;
+using System.Collections.Concurrent;
 
 namespace NetX.Master;
 
@@ -28,7 +28,7 @@ public sealed class ResultDispatcher : IResultDispatcher
     /// 结果分发器实例对象
     /// </summary>
     /// <param name="logger"></param>
-    public ResultDispatcher(ILogger<ResultDispatcher> logger, INodeManagement nodeManager,IJobTrackerCache<JobTrackerItem> jobTrackerCache)
+    public ResultDispatcher(ILogger<ResultDispatcher> logger, INodeManagement nodeManager, IJobTrackerCache<JobTrackerItem> jobTrackerCache)
     {
         _logger = logger;
         //开启新的线程，监听任务结果集合
@@ -91,8 +91,8 @@ public sealed class ResultDispatcher : IResultDispatcher
                     await result.Result.SegmentHandlerAsync(async segment =>
                     {
                         await consumer.StreamWriter.WriteAsync(new ExecuteTaskResponse()
-                        { 
-                            Result = ByteString.CopyFrom(segment.Span) 
+                        {
+                            Result = ByteString.CopyFrom(segment.Span)
                         }, consumer.CancellationToken);
                     });
                     //空消息，通知client已经发送结束 

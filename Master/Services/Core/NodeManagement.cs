@@ -1,5 +1,4 @@
-﻿using Microsoft.IdentityModel.Tokens;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace NetX.Master;
 
@@ -10,7 +9,6 @@ public class NodeManagement : INodeManagement
 {
     private readonly ILoadBalancing loadBalancing;
     private readonly ILogger logger;
-    //private static ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim(); 
     private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
     private ConcurrentDictionary<string, WorkerNode> nodes = new ConcurrentDictionary<string, WorkerNode>();
 
@@ -51,7 +49,7 @@ public class NodeManagement : INodeManagement
     /// <param name="nodeId"></param>
     public async Task NodeUnRegister(string nodeId)
     {
-        if(string.IsNullOrWhiteSpace(nodeId))
+        if (string.IsNullOrWhiteSpace(nodeId))
             throw new ArgumentNullException(nameof(nodeId));
         await _semaphore.WaitAsync();
         try

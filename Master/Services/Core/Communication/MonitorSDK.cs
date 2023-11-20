@@ -1,7 +1,5 @@
 ﻿using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
-using NetX.Common;
-using NetX.Master.Services.Core;
 using SDK;
 
 namespace NetX.Master;
@@ -55,7 +53,7 @@ public class MonitorSDK : SDK.MasterMonitorSDK.MasterMonitorSDKBase
 
         await application.Invoke(grpcContext);
 
-        return grpcContext.Response.Response;        
+        return grpcContext.Response.Response;
     }
 
     [Authorize]

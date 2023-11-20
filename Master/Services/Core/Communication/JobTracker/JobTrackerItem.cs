@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NetX.Master.Services.Core;
+﻿namespace NetX.Master.Services.Core;
 
 public class JobTrackerItem : CacheItem
 {
@@ -12,7 +6,7 @@ public class JobTrackerItem : CacheItem
 
     public string NodeName { get; set; }
 
-    public DateTime StartTime { get; set; } 
+    public DateTime StartTime { get; set; }
 
     public DateTime EndTime { get; set; }
 
@@ -20,7 +14,7 @@ public class JobTrackerItem : CacheItem
 
     public string Message { get; set; }
 
-    public JobTrackerItem(string jobId , DateTime startTime)
+    public JobTrackerItem(string jobId, DateTime startTime)
     {
         base.JobId = jobId;
         StartTime = startTime;

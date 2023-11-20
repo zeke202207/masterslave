@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-
-namespace NetX.Master;
+﻿namespace NetX.Master;
 
 public class AuthMiddleware<TRequest, TReponse> : IApplicationMiddleware<GrpcContext<TRequest, TReponse>>
 {
@@ -14,7 +12,7 @@ public class AuthMiddleware<TRequest, TReponse> : IApplicationMiddleware<GrpcCon
     public async Task InvokeAsync(ApplicationDelegate<GrpcContext<TRequest, TReponse>> next, GrpcContext<TRequest, TReponse> context)
     {
         var canAccess = _securityPolicy.IsRequestAllowed(context.Client);
-        if(!canAccess) 
+        if (!canAccess)
             throw new UnauthorizedAccessException("未授权");
         await next?.Invoke(context);
     }

@@ -2,7 +2,7 @@
 
 namespace NetX.Master;
 
-public sealed class GrpcContext<TRequest,TResponse> : ApplicationContext
+public sealed class GrpcContext<TRequest, TResponse> : ApplicationContext
 {
     /// <summary>
     /// 获取redis客户端
@@ -22,7 +22,7 @@ public sealed class GrpcContext<TRequest,TResponse> : ApplicationContext
     /// <summary>
     /// 取消令牌
     /// </summary>
-    public CancellationToken CancellationToken{get;set;}
+    public CancellationToken CancellationToken { get; set; }
 
     /// <summary>
     /// Grpc上下文

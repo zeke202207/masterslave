@@ -17,7 +17,7 @@ public class WorkerNode
     /// </summary>
     public string GrpcServer { get; set; }
 
-    public Dictionary<string, string> MetaData { get; set;}
+    public Dictionary<string, string> MetaData { get; set; }
 }
 
 public record class KeyValue(string Key, string Value);

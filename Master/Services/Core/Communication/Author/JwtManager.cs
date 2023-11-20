@@ -76,11 +76,11 @@ public class JwtManager : IJwtManager
         var jwtSecurityToken = validatedToken as JwtSecurityToken;
 
         if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-            return null; 
+            return null;
         return new JwtModel
-            {
-                UserId = jwtSecurityToken.Subject,
-                Password = jwtSecurityToken.Claims.First(x => x.Type == "unique_name").Value
-            };
+        {
+            UserId = jwtSecurityToken.Subject,
+            Password = jwtSecurityToken.Claims.First(x => x.Type == "unique_name").Value
+        };
     }
 }

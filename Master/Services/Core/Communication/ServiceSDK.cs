@@ -1,9 +1,6 @@
 ﻿using Grpc.Core;
-using SDK;
-using NetX.MemoryQueue;
-using Newtonsoft.Json.Linq;
-using NetX.Master.Services.Core;
 using Microsoft.AspNetCore.Authorization;
+using SDK;
 
 namespace NetX.Master;
 

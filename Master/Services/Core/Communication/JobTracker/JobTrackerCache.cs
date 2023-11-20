@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 
 namespace NetX.Master.Services.Core;
 
@@ -67,7 +62,7 @@ public class JobTrackerCache<T> : IJobTrackerCache<T> where T : CacheItem
             throw new ArgumentNullException(nameof(itemId));
         if (cache.TryGetValue(itemId, out var item))
             return await Task.FromResult<T>(item);
-        return default; 
+        return default;
     }
 
     /// <summary>
@@ -78,9 +73,9 @@ public class JobTrackerCache<T> : IJobTrackerCache<T> where T : CacheItem
     public async Task<IEnumerable<T>> GetLatestAsync(int count)
     {
         var queueList = queue.ToList();
-        if(queueList.Count == 0)
+        if (queueList.Count == 0)
             return Enumerable.Empty<T>();
-        int maxCount = Math.Min(count,queueList.Count);
+        int maxCount = Math.Min(count, queueList.Count);
         //queueList.Reverse();
         return await Task.FromResult(queueList.ToArray()[..maxCount]);
     }

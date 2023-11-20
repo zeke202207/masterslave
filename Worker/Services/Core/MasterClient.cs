@@ -31,7 +31,7 @@ public class MasterClient : IMasterClient, IDisposable
     /// <param name="config"></param>
     /// <param name="jobRunner"></param>
     /// <param name="logger"></param>
-    public MasterClient(IOptions<WorkerNode> config,ILogger<MasterClient> logger, IServiceProvider serviceProvider)
+    public MasterClient(IOptions<WorkerNode> config, ILogger<MasterClient> logger, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _cancellationTokenSource = new CancellationTokenSource();

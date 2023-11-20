@@ -1,7 +1,6 @@
 ﻿using Grpc.Core;
-using SDK;
-using NetX.MemoryQueue;
 using NetX.Master.Services.Core;
+using SDK;
 
 namespace NetX.Master;
 

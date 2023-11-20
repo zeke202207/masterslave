@@ -1,7 +1,5 @@
 ﻿using Grpc.Core;
 using MasterWorkerService;
-using Microsoft.AspNetCore.Components.Forms;
-using NetX.Common;
 
 namespace NetX.Master;
 
@@ -164,7 +162,7 @@ public class MasterService : MasterWorkerService.MasterNodeService.MasterNodeSer
     /// <param name="request"></param>
     /// <param name="response"></param>
     /// <returns></returns>
-    private GrpcContext<TRequest, TResponse> CreateGrpcContext<TRequest, TResponse>(ServerCallContext context,TRequest request,TResponse response)
+    private GrpcContext<TRequest, TResponse> CreateGrpcContext<TRequest, TResponse>(ServerCallContext context, TRequest request, TResponse response)
     {
         var client = new GrpcClient(context);
         var grpcRequest = GrpcRequest<TRequest>.Create(request);

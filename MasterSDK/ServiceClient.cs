@@ -7,7 +7,7 @@ namespace NetX.MasterSDK;
 /// </summary>
 public class ServiceClient : BaseClient<SDK.MasterServiceSDK.MasterServiceSDKClient>, IDisposable
 {
-    public ServiceClient(string host,string username, string password)
+    public ServiceClient(string host, string username, string password)
         : base(host, username, password)
     {
 
